@@ -1,29 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Inter } from "next/font/google";
 import "./globals.css";
+import { SiteNav } from "./components/SiteNav";
+import { SiteFooter } from "./components/SiteFooter";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "grounded-rag",
-  description: "A RAG system that answers only from source material and refuses when it can't.",
+  title: "Meridian Assist",
+  description: "Resolve routine support questions without inventing company policy.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${geist.variable} ${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
+        <div className="gradient-strip" aria-hidden="true" />
+        <SiteNav />
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

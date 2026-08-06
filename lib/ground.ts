@@ -55,6 +55,13 @@ async function decomposeClaims(answer: string): Promise<string[]> {
   const response = await getAnthropic().messages.create({
     model: HAIKU_MODEL,
     max_tokens: DECOMPOSE_MAX_TOKENS,
+    // Pinned near-zero: this is a classification-shaped task (which sentences are
+    // claims vs. meta-commentary), not creative generation. Left at the API default,
+    // the same answer text can decompose differently across calls — observed directly
+    // in eval runs where an identical guided-scenario question flipped between
+    // "answered" and "refused" run to run. A demo scenario should teach the same
+    // lesson every time.
+    temperature: 0,
     system:
       'Break the given answer into atomic factual claims — each a single, independently verifiable statement about the world (e.g. a policy, price, or rule). Skip hedges, greetings, and meta-commentary about the answer itself or about what the source material does or doesn\'t say — none of these are claims: ("I cannot answer...", "the passages don\'t mention X", "this isn\'t specified", "it\'s unclear whether Y", or any statement whose subject is the documentation\'s coverage rather than a real-world fact). Also skip any statement that reasons from silence (e.g. "X isn\'t mentioned, so it must not be offered") — that is an inference, not a stated fact. Respond with JSON only: {"claims": ["claim text", ...]}. Use an empty array if the answer contains no verifiable factual claims — this is the correct, common case for a refusal-flavored answer.',
     messages: [{ role: "user", content: answer }],
@@ -82,8 +89,13 @@ async function scoreEntailment(
   const response = await getAnthropic().messages.create({
     model: HAIKU_MODEL,
     max_tokens: ENTAIL_MAX_TOKENS,
+    // Same reasoning as decomposeClaims above — entailment scoring is the safety-
+    // critical verification step and should be as consistent as possible run to run.
+    temperature: 0,
     system:
-      'You will be given a numbered list of claims and a set of source passages, each with an id. For EVERY claim, judge how well the passages entail (directly support) it — a score from 0 (not mentioned, unsupported, or contradicted) to 1 (fully and directly supported by at least one passage). Do not use outside knowledge — judge only against the given passages. List which passage id(s), if any, support each claim. Respond with JSON only: {"scores": [{"claimIndex": 0, "score": 0.9, "supportingPassageIds": ["some-id"]}, ...]}. Include one entry per claim, in order.',
+      'You will be given a numbered list of claims and a set of source passages, each with an id. For EVERY claim, judge how well the passages entail (directly support) it — a score from 0 (not mentioned, unsupported, or contradicted) to 1 (fully and directly supported by at least one passage). Do not use outside knowledge — judge only against the given passages.\n\n' +
+      'Be strict about topic conflation: a claim about topic A is NOT entailed by a passage about a related-but-distinct topic B, even if B would plausibly imply A in the real world. Example — a passage stating "the company does not accept liability for lost property" does NOT entail a claim that "insurance does not cover lost property." Liability/responsibility and insurance coverage are different concepts; a passage discussing one does not establish a claim about the other unless it says so explicitly. When a claim names a specific concept (insurance, warranty, refund, legal liability, etc.), only passages that discuss that SAME concept can support it — do not fill the gap with adjacent policy language, no matter how reasonable the inference feels.\n\n' +
+      'List which passage id(s), if any, support each claim. Respond with JSON only: {"scores": [{"claimIndex": 0, "score": 0.9, "supportingPassageIds": ["some-id"]}, ...]}. Include one entry per claim, in order.',
     messages: [
       {
         role: "user",

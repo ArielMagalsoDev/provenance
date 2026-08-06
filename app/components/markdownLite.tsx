@@ -3,13 +3,16 @@
 // "no additional dependencies without a stated reason". Shared by /corpus and /evals
 // so both get heading + paragraph + list + table + inline-bold support consistently.
 
+const textStyle: React.CSSProperties = { color: "var(--charcoal)", lineHeight: 1.55, fontSize: "16px", letterSpacing: "-0.16px" };
+const mutedStyle: React.CSSProperties = { color: "var(--steel)" };
+
 /** Splits on **bold** and wraps matches in <strong>; everything else passes through as text. */
 function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
     const match = part.match(/^\*\*([^*]+)\*\*$/);
     return match ? (
-      <strong key={`${keyPrefix}-${i}`} className="font-semibold text-zinc-900 dark:text-zinc-100">
+      <strong key={`${keyPrefix}-${i}`} style={{ fontWeight: 700, color: "var(--ink)" }}>
         {match[1]}
       </strong>
     ) : (
@@ -30,7 +33,7 @@ export function renderMarkdownLite(markdown: string): React.ReactNode[] {
   const flushParagraph = (key: string) => {
     if (paragraph.length === 0) return;
     blocks.push(
-      <p key={key} className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
+      <p key={key} style={textStyle}>
         {renderInline(paragraph.join(" "), key)}
       </p>
     );
@@ -40,7 +43,7 @@ export function renderMarkdownLite(markdown: string): React.ReactNode[] {
   const flushList = (key: string) => {
     if (listItems.length === 0) return;
     blocks.push(
-      <ol key={key} className="list-decimal list-outside pl-5 space-y-2 text-zinc-700 dark:text-zinc-300 leading-relaxed">
+      <ol key={key} style={{ ...textStyle, listStyle: "decimal", paddingLeft: "22px", display: "grid", gap: "8px" }}>
         {listItems.map((item, i) => (
           <li key={i}>{renderInline(item, `${key}-${i}`)}</li>
         ))}
@@ -60,25 +63,20 @@ export function renderMarkdownLite(markdown: string): React.ReactNode[] {
       .map((row) => row.split("|").slice(1, -1).map((cell) => cell.trim()));
     const [header, ...body] = rows;
     blocks.push(
-      <div key={key} className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
+      <div key={key} style={{ overflowX: "auto" }}>
+        <table className="specs-table" style={{ width: "100%" }}>
           <thead>
             <tr>
               {header.map((h, i) => (
-                <th
-                  key={i}
-                  className="text-left border-b border-zinc-300 dark:border-zinc-700 py-2 pr-4 text-zinc-500 dark:text-zinc-400 font-medium font-mono"
-                >
-                  {h}
-                </th>
+                <th key={i}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {body.map((row, ri) => (
-              <tr key={ri} className="border-b border-zinc-100 dark:border-zinc-900">
+              <tr key={ri}>
                 {row.map((cell, ci) => (
-                  <td key={ci} className="py-2 pr-4 text-zinc-800 dark:text-zinc-200 align-top">
+                  <td key={ci} style={{ textAlign: ci === 0 ? "left" : "right" }}>
                     {renderInline(cell, `${key}-${ri}-${ci}`)}
                   </td>
                 ))}
@@ -113,14 +111,14 @@ export function renderMarkdownLite(markdown: string): React.ReactNode[] {
     if (line.startsWith("## ")) {
       flushParagraph(`p${i}`);
       blocks.push(
-        <h3 key={i} className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-6 first:mt-0">
+        <h3 key={i} style={{ fontSize: "16px", fontWeight: 650, color: "var(--ink)", marginTop: "28px" }}>
           {line.slice(3)}
         </h3>
       );
     } else if (line.startsWith("# ")) {
       flushParagraph(`p${i}`);
       blocks.push(
-        <h2 key={i} className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-8 first:mt-0">
+        <h2 key={i} style={{ fontSize: "26px", marginTop: "36px" }}>
           {line.slice(2)}
         </h2>
       );
@@ -136,3 +134,5 @@ export function renderMarkdownLite(markdown: string): React.ReactNode[] {
 
   return blocks;
 }
+
+export const markdownMutedStyle = mutedStyle;

@@ -61,3 +61,66 @@ export type ModelCallError = {
   error: string;
   stage: "screen" | "generate" | "ground" | "embed";
 };
+
+// --- Meridian Assist ticket layer ---
+// This wraps AskResponse in business-facing (ticket/automation) framing — see
+// docs/PRODUCT-PLAN.md §11. It does NOT replace AskResponse: the pipeline's decision
+// logic (screen -> retrieve -> generate -> ground -> gate) is unchanged and still
+// produces AskResponse; these types describe how a ticket presents that result.
+
+export type SupportTicket = {
+  id: string;
+  channel: "email" | "chat" | "helpdesk";
+  customerName: string;
+  customerContext?: string;
+  message: string;
+  receivedAt: string;
+  // Cosmetic, simulated fields for the demo — not a real ticket classifier. Set at
+  // ticket creation time (guided scenarios hardcode plausible values; free-text
+  // tickets get generic defaults). Never presented as measured/ML-derived.
+  category: string;
+};
+
+// Claim-level verification IS the claim check — same data, ticket-facing name.
+export type ClaimCheck = Claim;
+
+export type Citation = {
+  documentId: string; // passage id, e.g. "pricing-03"
+  documentTitle: string; // derived from sourceFile, e.g. "Pricing"
+  section: string | null; // passage heading
+  passage: string; // passage content
+  documentVersion: string; // corpus version stamp — see lib/tickets.ts CORPUS_VERSION
+};
+
+export type AuditEvent = {
+  ticketId: string;
+  stage: "intake" | "screening" | "retrieval" | "generation" | "verification" | "routing" | "action";
+  outcome: string;
+  detail: string | null;
+  timestamp: string;
+};
+
+export type AutomationDecision = {
+  ticketId: string;
+  outcome: "approved" | "human_review" | "blocked";
+  reason: string;
+  proposedResponse: string | null;
+  citations: Citation[];
+  claimChecks: ClaimCheck[];
+  groundedness: number | null;
+  auditEvents: AuditEvent[];
+  // Extensions beyond the plan's minimal external contract — the ticket UI needs the
+  // full pipeline detail (retrieval similarity, per-stage timing) to render the
+  // evidence panel; the underlying AskResponse carries that.
+  ticket: SupportTicket;
+  askResponse: AskResponse;
+};
+
+export type ReviewHandoff = {
+  ticketId: string;
+  queue: "operations" | "billing" | "security";
+  summary: string;
+  reason: string;
+  citations: Citation[];
+  priority: "normal" | "high";
+};

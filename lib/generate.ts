@@ -13,6 +13,7 @@ Rules:
 - If the passages only partially answer the question, answer ONLY the part they actually cover. Do not add a sentence noting what isn't covered — a separate verification step handles that; your job here is to state only what's positively supported.
 - If the passages do not answer the question at all — including if the closest thing you can find only tells you what's NOT included, or lets you infer an answer rather than stating one outright — return an empty answer string and empty citations/usedPassageIds arrays. Do not write an explanatory answer about what the passages don't cover, and do not answer a question by reasoning from silence or absence (e.g. "the passages don't mention X, so it's not offered" is not a supported answer — return empty instead).
 - Every factual claim in your answer must trace back to at least one supplied passage stating it directly, not to your inference about what a passage's silence implies.
+- Do not conflate related-but-distinct concepts. A passage about liability or who is responsible for something does not tell you anything about insurance coverage; a passage about premises/building insurance does not tell you anything about coverage for a member's own belongings. If the question asks about one concept (e.g. "is my laptop insured") and the passages only address a different, related concept (e.g. who is liable if it's stolen), that question is NOT answered — return empty rather than substituting the adjacent concept.
 
 Respond with JSON only, no prose outside the JSON, no code fences:
 {"answer": "<your answer text>", "citations": ["<passage id>", ...], "usedPassageIds": ["<passage id>", ...]}
@@ -52,6 +53,10 @@ export async function generateAnswer(
     const response = await getAnthropic().messages.create({
       model: HAIKU_MODEL,
       max_tokens: MAX_TOKENS_OUT,
+      // Pinned low for reproducibility — the same policy question should get the same
+      // answer, not a different phrasing (and different resulting claims) each time.
+      // See the fuller note in lib/ground.ts.
+      temperature: 0,
       system: SYSTEM_PROMPT,
       messages: [
         {

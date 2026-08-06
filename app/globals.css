@@ -1,26 +1,511 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* Forced light mode: `dark:` utilities only apply under a ".dark" ancestor class,
-   which nothing in this app applies — so they're inert regardless of OS/browser
-   color-scheme preference. Restrained light/typographic is the intended look (see
-   CLAUDE.md Phase 7); this is one line instead of stripping dark: classes everywhere.
-   Flip to (&:where(.dark, .dark *)) plus a real theme toggle later if wanted. */
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark *));
+
+/* Design system: a light, modern SaaS look (Geist for headings, Inter for body,
+   100px pill shapes, a blue/pink accent pair, a signature blue→purple→pink
+   gradient reserved for the page-top strip and the primary CTA's glow). Third
+   full re-skin of this app — the underlying pipeline never changes, only this
+   layer. No third-party logo/wordmark used anywhere; only an abstract token
+   system (color values, spacing scale, component shapes) applied to Meridian
+   Assist's own content. Single theme, no dark mode toggle. */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #466cf3;
+  --primary-deep: #3555d1;
+  --primary-soft: #eef1fe;
+  --on-primary: #ffffff;
+  --ink-button: #181818;
+  --on-ink-button: #ffffff;
+  --accent-pink: #f83d69;
+  --accent-pink-deep: #d92a54;
+  --link-blue: #466cf3;
+  --success: #466cf3;
+  --attention: #b98900;
+  --warning: #f0b429;
+  --critical: #f83d69;
+  --critical-strong: #d92a54;
+  --canvas: #ffffff;
+  --surface-soft: #fafafa;
+  --chip-bg: rgba(108, 111, 118, 0.06);
+  --ink-deep: #181818;
+  --ink: #232323;
+  --charcoal: #3d3f43;
+  --slate: #46484d;
+  --steel: #6b6d72;
+  --stone: #98999e;
+  --hairline: #e6e6e6;
+  --hairline-soft: #ededed;
+  --disabled-text: #c7c7c9;
+  --gradient-brand: linear-gradient(90deg, #466cf3 0%, #a355f7 50%, #f83d69 100%);
+  --font-display: var(--font-geist), Helvetica, Arial, "Noto Sans", sans-serif;
+  --font-body: var(--font-inter), Helvetica, Arial, "Noto Sans", sans-serif;
+
+  --r-xs: 2px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-xxl: 28px;
+  --r-xxxl: 32px;
+  --r-feature: 40px;
+  --r-full: 100px;
+  --r-circle: 9999px;
+
+  --s-xxs: 4px;
+  --s-xs: 8px;
+  --s-sm: 10px;
+  --s-md: 12px;
+  --s-base: 16px;
+  --s-lg: 20px;
+  --s-xl: 24px;
+  --s-xxl: 32px;
+  --s-xxxl: 40px;
+  --s-section-sm: 48px;
+  --s-section: 64px;
+  --s-section-lg: 80px;
+  --s-hero: 120px;
+
+  --max: 1280px;
+
+  --background: oklch(1 0 0);
+
+  --foreground: oklch(0.145 0 0);
+
+  --card: oklch(1 0 0);
+
+  --card-foreground: oklch(0.145 0 0);
+
+  --popover: oklch(1 0 0);
+
+  --popover-foreground: oklch(0.145 0 0);
+
+  --primary-foreground: #ffffff;
+
+  --secondary: oklch(0.97 0 0);
+
+  --secondary-foreground: oklch(0.205 0 0);
+
+  --muted: oklch(0.97 0 0);
+
+  --muted-foreground: oklch(0.556 0 0);
+
+  --accent: oklch(0.97 0 0);
+
+  --accent-foreground: oklch(0.205 0 0);
+
+  --destructive: oklch(0.577 0.245 27.325);
+
+  --border: oklch(0.922 0 0);
+
+  --input: oklch(0.922 0 0);
+
+  --ring: oklch(0.708 0 0);
+
+  --chart-1: oklch(0.87 0 0);
+
+  --chart-2: oklch(0.556 0 0);
+
+  --chart-3: oklch(0.439 0 0);
+
+  --chart-4: oklch(0.371 0 0);
+
+  --chart-5: oklch(0.269 0 0);
+
+  --radius: 0.625rem;
+
+  --sidebar: oklch(0.985 0 0);
+
+  --sidebar-foreground: oklch(0.145 0 0);
+
+  --sidebar-primary: oklch(0.205 0 0);
+
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+
+  --sidebar-accent: oklch(0.97 0 0);
+
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+
+  --sidebar-border: oklch(0.922 0 0);
+
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink-deep);
+  --font-sans: var(--font-inter), Helvetica, Arial, "Noto Sans", sans-serif;
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Base element resets belong in Tailwind's "base" layer — unlayered CSS otherwise
+   beats the utility layer regardless of source order, which silently ate shadcn
+   Button's text-color utility on <a> elements (color: inherit here always won over
+   text-[var(--on-ink-button)]) until this was wrapped. */
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink-deep);
+    background: var(--canvas);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: -0.16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, a, input, select, textarea { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+  button { cursor: pointer; }
+  svg { display: block; }
+  code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 0.9em; background: var(--surface-soft); padding: 1px 5px; border-radius: var(--r-sm); }
+}
+
+.shell { width: min(calc(100% - 40px), var(--max)); margin-inline: auto; }
+
+/* Gradient strip — the signature blue→purple→pink hairline at the very top of
+   every page. */
+.gradient-strip { height: 3px; width: 100%; background: var(--gradient-brand); }
+
+/* Typography scale — matched directly against salix.framer.website's computed
+   styles (Geist h1-h4, tracking as a flat px value per size, not a single
+   em ratio: -3.5px@64, -2.5px@44, -1.5px@32, -1px@24 — expressed here as the
+   equivalent em so it still scales correctly with the fluid clamp() sizes). */
+h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; }
+.text-hero { font-family: var(--font-display); font-size: clamp(34px, 6.4vw, 64px); font-weight: 500; line-height: 1.1; letter-spacing: -0.0547em; }
+.text-display-lg { font-family: var(--font-display); font-size: clamp(28px, 4.6vw, 44px); font-weight: 500; line-height: 1.2; letter-spacing: -0.0568em; }
+.text-heading-lg { font-family: var(--font-display); font-size: clamp(24px, 3.4vw, 32px); font-weight: 500; line-height: 1.4; letter-spacing: -0.0469em; }
+.text-heading-md { font-family: var(--font-display); font-size: 26px; font-weight: 500; line-height: 1.4; letter-spacing: -0.045em; }
+.text-heading-sm { font-family: var(--font-display); font-size: 22px; font-weight: 500; line-height: 1.4; letter-spacing: -0.0417em; }
+.text-subtitle-lg { font-size: 18px; font-weight: 600; line-height: 1.5; }
+.text-subtitle-md { font-size: 17px; font-weight: 400; line-height: 1.6; }
+.text-body-md { font-size: 16px; font-weight: 400; line-height: 1.7; }
+.text-body-md-bold { font-size: 16px; font-weight: 600; line-height: 1.6; }
+.text-body-sm { font-size: 14px; font-weight: 400; line-height: 1.6; }
+.text-body-sm-bold { font-size: 14px; font-weight: 600; line-height: 1.5; }
+.text-caption { font-size: 12px; font-weight: 400; line-height: 1.4; }
+.text-caption-bold { font-size: 12px; font-weight: 600; line-height: 1.4; }
+
+/* Buttons — pill-shaped, always. The dark primary carries a soft gradient glow
+   behind it for the one "commit" moment (approving/escalating a ticket, the
+   hero CTA); everywhere else it's the plain dark pill. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: var(--r-full);
+  padding: 14px 30px;
+  border: none;
+  white-space: nowrap;
+}
+.btn:disabled { cursor: not-allowed; }
+.btn-primary { background: var(--ink-button); color: var(--on-ink-button); }
+.btn-primary:active { background: #000; }
+.btn-primary:disabled { background: var(--disabled-text); color: var(--canvas); }
+.btn-buy { background: var(--primary); color: var(--on-primary); }
+.btn-buy:active { background: var(--primary-deep); }
+.btn-buy:disabled { background: var(--disabled-text); color: var(--canvas); }
+.btn-secondary { background: var(--canvas); color: var(--ink-deep); border: 1px solid var(--hairline); padding: 13px 29px; }
+.btn-ghost { background: transparent; color: var(--ink-deep); border: 1px solid var(--hairline); padding: 11px 21px; }
+.btn-sm { padding: 9px 18px; }
+
+/* Gradient glow — sits behind a primary CTA via a wrapping span with position:
+   relative; ::before blurs the brand gradient outward. Applied as a class on a
+   wrapper, not the button itself, so the button keeps a crisp edge. */
+.btn-glow-wrap { position: relative; display: inline-flex; isolation: isolate; }
+.btn-glow-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  background: var(--gradient-brand);
+  border-radius: var(--r-full);
+  filter: blur(16px);
+  opacity: 0.55;
+  z-index: -1;
+}
+
+.pill-tab {
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-full);
+  padding: 8px 16px;
+}
+.pill-tab.active { background: var(--ink-deep); color: var(--canvas); border-color: transparent; }
+
+/* Small pill label used above section headings — icon dot + uppercase-free text,
+   matches the source system's "eyebrow chip" pattern. */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--chip-bg);
+  color: var(--steel);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  padding: 6px 14px 6px 10px;
+}
+.section-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-circle);
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--hairline-soft);
+}
+
+/* Cards — fill/radius matched to salix.framer.website's actual pricing card
+   DOM (#fafafa, 16px radius); border + shadow kept (Salix's own card has
+   neither, but the border/shadow reads better here for definition). */
+.card-feature { background: var(--surface-soft); border-radius: var(--r-lg); padding: var(--s-xxl); border: 1px solid var(--hairline); box-shadow: 0 1px 2px rgba(24, 24, 24, 0.04); }
+.card-promo { background: var(--ink-deep); color: var(--canvas); border-radius: var(--r-xxxl); padding: var(--s-section); }
+.card-icon-feature { background: var(--surface-soft); border-radius: var(--r-lg); padding: var(--s-xxl); border: 1px solid var(--hairline); }
+.card-checkout { background: var(--canvas); border-radius: var(--r-lg); padding: var(--s-xl); border: 1px solid var(--hairline); box-shadow: rgba(24, 24, 24, 0.08) 0px 1px 4px 0px; }
+.card-warranty { background: var(--surface-soft); border-radius: var(--r-lg); padding: var(--s-xxl); }
+
+/* Bento stat card — the pink/blue/dark/white grid used for the reliability
+   scorecard, matching the source system's stat-block pattern. */
+.stat-tile { border-radius: var(--r-lg); padding: var(--s-xl); display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 148px; }
+.stat-tile-pink { background: var(--accent-pink); color: #fff; }
+.stat-tile-blue { background: var(--primary); color: #fff; }
+.stat-tile-dark { background: var(--ink-deep); color: #fff; }
+.stat-tile-white { background: var(--canvas); border: 1px solid var(--hairline); color: var(--ink-deep); }
+.stat-tile .stat-value { font-family: var(--font-display); font-size: 40px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; }
+.stat-tile .stat-label { font-size: 14px; opacity: 0.85; }
+
+/* Inputs */
+.input {
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: 15px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 0 var(--s-md);
+  height: 44px;
+}
+.input:focus { outline: none; border: 2px solid var(--primary); }
+.input-error { border: 1px solid var(--critical-strong); }
+
+/* Chip-tab selectable option (scenario picker) — small colored dot + label,
+   matches the source system's segmented "Meeting Scheduler / Territory
+   Management" chip-tab row rather than a full marketing card. */
+.radio-option { background: var(--canvas); border-radius: var(--r-lg); padding: var(--s-lg); border: 1px solid var(--hairline); text-align: left; }
+.radio-option.selected { border: 2px solid var(--primary); background: var(--primary-soft); }
+.radio-option:disabled { opacity: 0.5; cursor: default; }
+
+/* Badges — soft-tint pills (tinted background, saturated text), not solid
+   fills. Maps onto approved / human_review / blocked routing states. */
+.badge { display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-full); padding: 4px 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.badge-success { background: var(--primary-soft); color: var(--primary-deep); }
+.badge-attention { background: #fdf3d9; color: #8a6a06; }
+.badge-warning { background: #fdf3d9; color: #8a6a06; }
+.badge-critical { background: #fde7ec; color: var(--accent-pink-deep); }
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.promo-banner {
+  background: var(--ink-deep);
+  color: var(--canvas);
+  font-size: 13px;
+  font-weight: 500;
+  padding: var(--s-sm) var(--s-xl);
+  text-align: center;
+}
+.promo-banner a { text-decoration: underline; }
+
+/* Nav — floating rounded white bar, detached from the very top, soft shadow. */
+.nav-wrap { position: sticky; top: 0; z-index: 20; background: transparent; padding-top: 14px; }
+.nav-float {
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-full);
+  box-shadow: 0 4px 16px rgba(24, 24, 24, 0.06);
+  padding: 0 10px 0 20px;
+}
+nav { min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; font-family: var(--font-display); }
+.brand-mark { width: 24px; height: 24px; border-radius: var(--r-sm); background: var(--gradient-brand); flex-shrink: 0; }
+.nav-pills { display: flex; align-items: center; gap: 4px; }
+.nav-pills a { font-size: 14px; color: var(--steel); padding: 8px 14px; border-radius: var(--r-full); }
+.nav-pills a:hover { background: var(--chip-bg); color: var(--ink); }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+
+/* Breadcrumb-style trail */
+.crumb { font-size: 14px; color: var(--steel); }
+.crumb .active { color: var(--ink); }
+.crumb .sep { color: var(--stone); margin: 0 6px; }
+
+/* Tech-specs style key/value table — soft status pills on the last column when
+   used for eval buckets, matches the source system's "Sales Analytics" table. */
+.specs-table { width: 100%; border-collapse: collapse; }
+.specs-table td, .specs-table th { padding: 12px 0; border-bottom: 1px solid var(--hairline); font-size: 14px; }
+.specs-table th { text-align: left; color: var(--steel); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+.specs-table td:not(:first-child), .specs-table th:not(:first-child) { text-align: right; color: var(--charcoal); }
+.specs-table tr:last-child td { border-bottom: none; font-weight: 600; color: var(--ink); }
+
+/* FAQ-style accordion, native <details> — no JS needed */
+.accordion-item { background: var(--surface-soft); border-radius: var(--r-lg); padding: var(--s-xl); border: 1px solid var(--hairline); }
+.accordion-item + .accordion-item { margin-top: 12px; }
+.accordion-item summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.accordion-item summary::-webkit-details-marker { display: none; }
+.accordion-item .chevron { color: var(--steel); transition: none; flex-shrink: 0; }
+.accordion-item[open] .chevron { transform: rotate(180deg); }
+.accordion-item .answer { padding-top: var(--s-base); font-size: 16px; color: var(--charcoal); line-height: 1.6; }
+
+.footer-region { background: var(--canvas); color: var(--steel); border-top: 1px solid var(--hairline); padding: var(--s-section) 0; }
+.footer-top { display: grid; grid-template-columns: 1fr 2fr; gap: 40px; }
+.footer-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.footer-col h4 { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 14px; }
+.footer-col a { display: block; font-size: 14px; color: var(--steel); padding: 5px 0; }
+.footer-bottom { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--stone); }
+
+/* Step-by-step flow ("How it works") — two rows of cards connected by
+   arrows, reading as an actual pipeline rather than a plain numbered grid.
+   The row-to-row connector is a full-width Z (drop → horizontal → drop),
+   anchored 16px in from each row's edge so it lines up with the card
+   padding — not a fixed-size SVG guessing at position, which is what put
+   the arrow between steps 4 and 5 in the wrong place originally. */
+.flow-row { display: flex; align-items: stretch; gap: 0; }
+.flow-card { background: var(--canvas); border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: 18px 16px; flex: 1; min-width: 0; }
+.flow-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink-deep); color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.flow-title { font-size: 14px; font-weight: 600; margin-top: 12px; }
+.flow-note { font-size: 12px; color: var(--steel); margin-top: 6px; line-height: 1.4; }
+.flow-arrow-h { flex-shrink: 0; width: 26px; display: flex; align-items: center; justify-content: center; }
+.flow-connector { position: relative; height: 36px; }
+.flow-connector .v-right { position: absolute; top: 0; right: 16px; width: 1.5px; height: 16px; background: var(--hairline); }
+.flow-connector .h-line { position: absolute; top: 16px; left: 16px; right: 16px; height: 1.5px; background: var(--hairline); }
+.flow-connector .v-left { position: absolute; top: 16px; left: 16px; width: 1.5px; height: 12px; background: var(--hairline); }
+.flow-connector .arrowhead { position: absolute; left: 16px; top: 26px; transform: translateX(-50%); }
+@media (max-width: 767px) {
+  .flow-row { flex-direction: column; gap: 12px; }
+  .flow-arrow-h { width: auto; height: 22px; }
+  .flow-arrow-h svg { transform: rotate(90deg); }
+  .flow-connector { height: 22px; }
+  .flow-connector .v-right, .flow-connector .h-line, .flow-connector .v-left { display: none; }
+  .flow-connector .arrowhead { position: static; transform: none; display: flex; justify-content: center; }
+}
+
+/* Responsive grid utilities — used in place of inline gridTemplateColumns
+   wherever a section needs to collapse on narrow viewports (inline styles
+   can't be overridden by a media query without !important). Tracks use
+   minmax(0, Nfr), not bare Nfr — a plain 1fr track has an implicit
+   min-width:auto that refuses to shrink below its content's min-content
+   size, which silently blows out the whole grid (and the page) once a
+   card's text is wider than its 1/N share of the row — same failure mode
+   as the auto-fit nested-grid bug, different trigger. */
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.grid-split { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+
+section { padding: var(--s-section) 0; }
+@media (max-width: 1000px) {
+  .ticket-grid { grid-template-columns: 1fr !important; }
+  .ticket-grid > article { border-right: none !important; border-bottom: 1px solid var(--hairline); }
+  .ticket-grid > article:last-child { border-bottom: none; }
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  section { padding: var(--s-section-sm) 0; }
+  .footer-top { grid-template-columns: 1fr; gap: 32px; }
+  .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav-pills { display: none; }
+  .brand span:last-child { display: none; }
+  .grid-2, .grid-3, .grid-4, .grid-split { grid-template-columns: 1fr !important; }
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
