@@ -35,7 +35,12 @@ export function SiteFooter() {
         </div>
         <div className="footer-bottom">
           <span>Meridian Assist is a fictional product concept for demonstration purposes.</span>
-          <span>Policy in. Evidence out.</span>
+          <span>
+            Built by:{" "}
+            <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">
+              Ariel Magalso
+            </a>
+          </span>
         </div>
       </div>
     </footer>
