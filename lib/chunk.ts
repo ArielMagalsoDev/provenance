@@ -31,26 +31,39 @@ export type Chunk = { content: string; heading: string | null };
  * `buffer`, and the final flushParagraph() had nowhere to push it
  * (`if (text && current)` silently dropped it), leaving `sections` empty and
  * the whole upload rejected as "no extractable text" even though extraction
- * had fully succeeded. `current` now always exists, seeded as an implicit
- * no-heading section, so content is never dropped regardless of whether the
- * document has any heading structure.
+ * had fully succeeded.
+ *
+ * Content before the first "## " heading (or the entire document, if it has
+ * no headings at all) is now collected separately and appended AFTER every
+ * heading-based section, rather than becoming the first section. This keeps
+ * chunk *ordering* — and therefore passage IDs assigned sequentially in
+ * scripts/ingest.ts (pricing-01, pricing-02, ...) — stable for any existing
+ * corpus file that gains a recovered leading passage from this fix: it lands
+ * as a new trailing ID instead of shifting every subsequent one down. A
+ * heading-less document (the PDF/upload case) is unaffected — with no
+ * heading sections to interleave with, the leading content is simply the
+ * only section, in the same position it would have been anyway.
  */
 export function splitIntoSections(markdown: string): Section[] {
   const lines = markdown.split("\n");
   const sections: Section[] = [];
-  let current: Section = { heading: null, paragraphs: [] };
+  let current: Section | null = null;
+  const leading: string[] = [];
   let buffer: string[] = [];
 
   const flushParagraph = () => {
     const text = buffer.join("\n").trim();
-    if (text) current.paragraphs.push(text);
+    if (text) {
+      if (current) current.paragraphs.push(text);
+      else leading.push(text);
+    }
     buffer = [];
   };
 
   for (const line of lines) {
     if (line.startsWith("## ")) {
       flushParagraph();
-      sections.push(current);
+      if (current) sections.push(current);
       current = { heading: line.slice(3).trim(), paragraphs: [] };
     } else if (line.startsWith("# ")) {
       // Document title — not a passage heading, and not part of any section's content.
@@ -62,11 +75,12 @@ export function splitIntoSections(markdown: string): Section[] {
     }
   }
   flushParagraph();
-  sections.push(current);
+  if (current) sections.push(current);
 
-  // Drop any section (including the leading implicit one) that ended up
-  // empty — e.g. a document that opens directly with a "## " heading leaves
-  // the implicit leading section with zero paragraphs.
+  if (leading.length > 0) sections.push({ heading: null, paragraphs: leading });
+
+  // Drop any section that ended up empty (shouldn't happen given the above,
+  // but keeps the invariant explicit rather than assumed).
   return sections.filter((s) => s.paragraphs.length > 0);
 }
 
