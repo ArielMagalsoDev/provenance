@@ -177,9 +177,12 @@ export function AgentInbox() {
                       className={`radio-option${selectedId === t.id ? " selected" : ""}`}
                       style={{ textAlign: "left" }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-                        <Badge variant="warning">Human review</Badge>
-                        <span className="text-caption" style={{ color: "var(--stone)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "flex-start" }}>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                          <Badge variant="warning">Human review</Badge>
+                          {t.postedToSlack && <Badge variant="success">Also in Slack</Badge>}
+                        </div>
+                        <span className="text-caption" style={{ color: "var(--stone)", flexShrink: 0 }}>
                           {formatTime(t.createdAt)}
                         </span>
                       </div>

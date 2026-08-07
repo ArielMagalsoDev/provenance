@@ -5,6 +5,7 @@ import { GUIDED_SCENARIOS, type GuidedScenario } from "@/lib/scenarios";
 import type { AutomationDecision, AuditEvent, SupportTicket } from "@/lib/types";
 import { EvidenceSteps } from "./EvidenceSteps";
 import { DecisionPanel } from "./DecisionPanel";
+import { SlackNotificationCard } from "./SlackNotificationCard";
 import { TurnstileWidget } from "./TurnstileWidget";
 import { WorkspaceUpload } from "./WorkspaceUpload";
 import { Button } from "@/components/ui/button";
@@ -273,6 +274,8 @@ export function TicketWorkflow() {
                 <DecisionPanel decision={decision} onActionTaken={(event) => setAuditEvents((prev) => [...prev, event])} />
               </article>
             </div>
+
+            <SlackNotificationCard decision={decision} />
 
             <div style={{ borderTop: "1px solid var(--hairline-soft)", background: "var(--surface-soft)", padding: "18px 24px" }}>
               <div className="text-body-sm-bold">Decision history</div>

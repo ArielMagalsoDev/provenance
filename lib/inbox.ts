@@ -30,6 +30,11 @@ export type InboxTicketRow = {
   resolution: { action: "approved" | "dismissed"; editedResponse?: string; resolvedAt: string; source?: "inbox" | "slack" } | null;
   askResponse: AskResponse | null; // full pipeline detail — same shape /demo renders
   createdAt: string;
+  // Just a boolean, not the raw channel/ts — those are only meaningful
+  // server-side (chat.update needs them), no reason to expose Slack message
+  // coordinates to the browser for what's purely a "this ticket also has a
+  // live Slack thread" indicator.
+  postedToSlack: boolean;
 };
 
 type TicketDbRow = {
@@ -70,6 +75,7 @@ function rowToTicket(row: TicketDbRow): InboxTicketRow {
     resolution: row.resolution,
     askResponse: row.ask_response,
     createdAt: row.created_at,
+    postedToSlack: Boolean(row.slack_ts),
   };
 }
 
