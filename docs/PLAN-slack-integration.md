@@ -70,11 +70,29 @@ trail and double-clicks are visually discouraged.
 
 ## Status (2026-08-08)
 
-**Phases 0–4 built.** Typecheck + `npm run build` clean. Not yet committed/pushed
-(standing rule — needs Ariel's go) and not yet verified E2E against the deployed URL,
-since the interactive Approve/Reject buttons only work once `/api/slack/interact` is
-live at `provenance.arielmagalso.com` (Slack's Request URL can't point at localhost).
-Phase 5 is what's left.
+**Phases 0–4 built, committed, and deployed** (`72e741b`, `54eed08`). Typecheck +
+`npm run build` clean on every pass, including the current one.
+
+Verified live against `provenance.arielmagalso.com`:
+- Bot invited to `#provenance-ops`; posting works (was blocked by `not_in_channel`
+  until the manual invite — see HANDOFF.md).
+- Both notification-triggering outcomes confirmed via real ticket submissions and
+  Slack reads: `human_review` (ticket `71862d04…`, insufficient-evidence case) and
+  `blocked` (ticket `6e031993…`, bot-check case) each posted correctly with accurate
+  content and the `notification` audit event present in the API response.
+- `SlackNotificationCard` (the separate UI-surfacing pass, `docs/PLAN-slack-ui.md`)
+  renders correctly for both outcomes on the live page — confirmed via DOM
+  inspection (`innerHTML`/computed styles/bounding rects), not just bundle presence.
+  One false alarm along the way worth recording: a case-sensitive
+  `innerText.includes("Posted to Slack")` check returned `false` because the header
+  has `text-transform: uppercase` — `innerText` reflects the CSS-rendered case
+  (`"POSTED TO SLACK"`), not the source string. Check `innerHTML`/`textContent`, or
+  match case-insensitively, when verifying rendered text through the DOM.
+
+Still open from Phase 5: an actual Slack button click (Approve/Reject) has not been
+confirmed end-to-end — posting is verified, the interactivity round trip
+(`/api/slack/interact` → `resolveTicket` → message update) is implemented and
+type-checked but needs a real click in Slack to close out.
 
 One real deviation from this plan as originally written, found while implementing
 Phase 3: the interact route does **not** call `chat.update` itself — that call lives
@@ -136,17 +154,15 @@ it was resolved, which defeats the point of a channel-as-audit-trail.
   notification is real**.
 - `/architecture` page: add the connector to the flow description.
 
-### Phase 5 — verify E2E + docs — NOT STARTED (needs deploy)
-- Local first (Slack works from localhost for *posting*; the interactive callback
-  needs the deployed URL — verify buttons on production after deploy, per the
-  standing deploy-only-on-go rule).
-- E2E checklist: approved ticket posts; human_review posts with buttons; Approve
-  in Slack → ticket resolved + learned passage in the right workspace + cached
-  refusal cleared + Slack message updated; second click → "already resolved";
-  Reject → dismissed + message updated; env vars unset → pipeline behaves exactly
-  as today; `npm run evals` still 45/45.
+### Phase 5 — verify E2E + docs — PARTIALLY DONE
+- ~~Local first...~~ deployed; posting verified live (see Status above).
+- E2E checklist: ✅ approved ticket posts (earlier session). ✅ human_review posts.
+  ✅ blocked posts. ⬜ Approve in Slack → ticket resolved + learned passage in the
+  right workspace + cached refusal cleared + Slack message updated. ⬜ second click
+  → "already resolved". ⬜ Reject → dismissed + message updated. ⬜ env vars unset →
+  pipeline behaves exactly as today. ⬜ `npm run evals` still 45/45.
 - README ("Possible extensions" → real feature), HANDOFF.md update, PRODUCT-PLAN
-  Phase 4 marked partially done.
+  Phase 4 marked partially done — still open.
 
 ## Cost / risk
 
