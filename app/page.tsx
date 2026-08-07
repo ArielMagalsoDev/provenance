@@ -24,7 +24,7 @@ const WORKFLOW = [
   { n: "03", title: "Ticket arrives", note: "Email, chat, or helpdesk request." },
   { n: "04", title: "Evidence retrieved", note: "Relevant passages come back ranked." },
   { n: "05", title: "Claims verified", note: "Every statement must be supported." },
-  { n: "06", title: "Reply or route", note: "Send safely, or involve staff." },
+  { n: "06", title: "Reply or route", note: "Send safely, post to Slack, or involve staff." },
   { n: "07", title: "Decision logged", note: "Evidence and outcome stay auditable." },
 ];
 
@@ -71,6 +71,17 @@ const ARCHITECTURE_TEASER = [
     icon: (
       <svg {...TEASER_ICON_PROPS}>
         <path d="M4 20.5v-9M9.7 20.5V6.5M15.3 20.5v-6.5M21 20.5V3.5" stroke="var(--accent-pink)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    title: "Live operations handoff",
+    note: "Every decision posts to a real Slack channel; escalations carry live Approve/Reject buttons an operator can act on.",
+    icon: (
+      <svg {...TEASER_ICON_PROPS}>
+        <rect x="3.5" y="8.5" width="7" height="7" rx="1.5" stroke="var(--accent-pink)" strokeWidth="1.5" />
+        <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" stroke="var(--accent-pink)" strokeWidth="1.5" />
+        <path d="M10.5 12h6.5a2.5 2.5 0 0 0 2.5-2.5V9" stroke="var(--accent-pink)" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -195,7 +206,7 @@ export default function Home() {
       <section style={{ paddingTop: 0, paddingBottom: "24px" }}>
         <div className="shell" style={{ display: "flex", justifyContent: "center", gap: "48px", flexWrap: "wrap", textAlign: "center" }}>
           {[
-            { v: "51", l: "indexed passages" },
+            { v: "52", l: "indexed passages" },
             { v: "43", l: "eval cases" },
             { v: "3", l: "responsible outcomes" },
           ].map((s) => (
@@ -409,12 +420,24 @@ export default function Home() {
               </h2>
               <p className="text-body-md" style={{ color: "rgba(255,255,255,0.65)", marginTop: "14px" }}>
                 A portfolio case study covering the full decision path: controlled knowledge, retrieval, generation,
-                verification, routing, and measurement.
+                verification, routing, live handoff, and measurement.
               </p>
             </div>
             <div className="grid-4">
               {ARCHITECTURE_TEASER.map((a, i) => (
-                <div key={a.title} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "var(--r-lg)", padding: "22px" }}>
+                <div
+                  key={a.title}
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "var(--r-lg)",
+                    padding: "22px",
+                    // The 5th card (Slack) spans the full row — it's the newest,
+                    // most differentiating capability, not just another tile in
+                    // a fixed 4-column grid it would otherwise wrap awkwardly into.
+                    ...(i === 4 ? { gridColumn: "1 / -1" } : {}),
+                  }}
+                >
                   <div style={{ marginBottom: "18px" }}>{a.icon}</div>
                   <span className="text-caption" style={{ color: "rgba(255,255,255,0.4)" }}>
                     SYSTEM / 0{i + 1}
