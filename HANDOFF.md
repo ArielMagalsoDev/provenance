@@ -306,13 +306,61 @@ New gotchas from building this:
     definition when overlay content exists. Injection rules identical in both
     modes; only the topic scope changes.
 
+## Update: PDF upload bug fixed, corpus content recovered (2026-08-07/08, session on Ariel's Mac)
+
+A new session picked this up on Ariel's Mac (not the Windows box referenced above —
+this repo was freshly cloned from GitHub there; see `PLAN-grounded-rag.md` for the
+full narrative). Found and fixed two real bugs while finally testing real PDF upload
+end-to-end (only `.md` had been exercised before):
+
+- **Supabase project had auto-paused** (free-tier inactivity) — broke `/api/inbox` and
+  `/api/workspace/upload` with generic `TypeError: fetch failed`. Restored (had to pause
+  `signaldesk` first — the org's free tier caps 2 active projects; `signaldesk` is still
+  paused, un-pause anytime, no data loss).
+- **The real PDF upload bug was never `unpdf`.** It was `splitIntoSections()` in
+  `lib/chunk.ts` silently dropping all content from any document with no `## ` headings
+  and no blank lines — exactly what raw PDF-extracted text looks like (confirmed via
+  temporary production diagnostic logging: extraction always succeeded; a downstream
+  `chunkDocument()` call returning zero chunks was reusing the same `"no_text"` error
+  code, masking the real cause). An earlier `serverExternalPackages: ["unpdf"]`
+  next.config.ts change (commit `d458f8c`) was a red herring — harmless, kept as
+  defensive practice, but not the fix. Real fix: commits `fbf83a3` + `cbc9d65` — the
+  second commit specifically reorders so recovered leading content becomes a new
+  *trailing* passage ID instead of shifting every existing one down (see that commit's
+  message for why this mattered).
+- **This recovered real corpus content**: `pricing.md`'s intro paragraph ("no
+  long-term contract... cancel-anytime") had been silently dropped by the same bug
+  since Phase 2. Verified end-to-end on production: uploaded a fresh test PDF → 200 OK
+  → asked about it → answered correctly citing the uploaded passage, groundedness 1.0
+  → confirmed a coverage-gap question (insurance) still correctly refuses → confirmed a
+  normal corpus question still answers correctly.
+- **The corpus-side fix was applied directly via SQL, not `npm run ingest`** — no
+  machine in that session had `.env.local`'s real keys. Got the embedding straight from
+  the deployed edge function (using the safe, publishable anon key — `embed`'s own
+  comment confirms anon or service_role both work), then inserted the single new
+  `pricing-08` row via Supabase MCP's `execute_sql` (which has its own elevated
+  project-level access, separate from the app's service-role key). Verified: all 7
+  existing `pricing-*` rows byte-identical, `pricing-08` retrieves correctly (0.86
+  similarity) and cites correctly in production. **If a future session runs `npm run
+  ingest` for any other reason, it will independently reproduce this exact same
+  `pricing-08` row from the already-fixed `lib/chunk.ts` — nothing further needed
+  there.**
+- **`response_cache` was NOT truncated** despite the standing gotcha (#8) to do so
+  after any corpus change — checked all cached rows individually first; none touch
+  contract/cancel-anytime content, so nothing needed invalidating, and truncating
+  would have removed the pre-warmed guided-scenario safety net with no way to rebuild
+  it (no `ANTHROPIC_API_KEY` available that session). If a future session *can* run
+  `npm run warm-cache`, doing so is still harmless cleanup, just not urgent.
+- **New gotcha (19): Supabase's `list_tables` row counts are unreliable right after a
+  project pause/restore** — it showed `passages: 0 rows` when the real count (verified
+  via `execute_sql SELECT count(*)`) was 53. It's a `pg_class.reltuples` statistics
+  estimate, not a live count, and doesn't refresh until the next autovacuum/analyze.
+  Don't trust it immediately after restoring a paused project — query directly instead.
+
 ## Outstanding decisions / next actions
 
-1. **Say go to commit + push the Agent Inbox / upload work** (everything in the
-   "Update" section above). A push to `main` auto-deploys via the existing
-   Vercel↔GitHub connection. `unpdf` needs `npm install` on whatever machine deploys
-   it — already in `package.json`/`package-lock.json` once committed, so a normal
-   Vercel build picks it up automatically.
+1. ~~Say go to commit + push the Agent Inbox / upload work~~ — done, see above; also
+   done: the PDF upload fix and the `pricing.md` recovery in this same update.
 2. **Refusal screenshot for the README** (`docs/refusal-screenshot.png`) — still never
    actually captured to disk; ask a question the corpus doesn't cover (e.g. parking)
    on `/demo` and screenshot the resulting panel.
@@ -327,3 +375,11 @@ New gotchas from building this:
    not proof it generalizes), a real external integration (webhook intake, one
    downstream connector), and a walkthrough video. All explicitly out of scope for
    what's been built so far, not forgotten.
+6. **Full eval suite hasn't been re-run since the corpus grew to 52 passages** — the
+   committed 100%/0%/0% scorecard predates `pricing-08`. Very unlikely to regress
+   anything (the new passage only makes a previously-unanswerable-by-that-exact-passage
+   question answerable — it was already being answered adequately by neighboring
+   passages like `pricing-07`), but worth a real `npm run evals` run next time a
+   machine has the real keys, both for that and to confirm nothing else drifted.
+7. **`signaldesk`'s Supabase project is paused** (traded for the restore above) — 
+   un-pause whenever that project is needed again; no data was lost.
