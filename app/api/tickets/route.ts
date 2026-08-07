@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { runTicket } from "@/lib/tickets";
 import { getClientIp, hashIp } from "@/lib/limit";
+import { getWorkspaceId } from "@/lib/workspace";
 import type { SupportTicket } from "@/lib/types";
 
 export const maxDuration = 60; // same reasoning as /api/ask
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
     message?: unknown;
     category?: unknown;
     turnstileToken?: unknown;
+    includeShared?: unknown; // "my docs only" toggle — false = search only the visitor's own workspace content
   };
   try {
     body = await req.json();
@@ -32,6 +34,7 @@ export async function POST(req: Request) {
   const customerContext = typeof body.customerContext === "string" ? body.customerContext : undefined;
   const category = typeof body.category === "string" && body.category.trim() ? body.category.trim() : "General inquiry";
   const turnstileToken = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
+  const includeShared = body.includeShared !== false; // default true unless explicitly turned off
 
   if (!message) {
     return NextResponse.json({ error: "message is required" }, { status: 400 });
@@ -41,13 +44,18 @@ export async function POST(req: Request) {
   }
 
   const ip = getClientIp(req.headers);
+  // Read-only: asking a question never mints a workspace, only approve/upload
+  // do (see lib/workspace.ts). A visitor with no workspace yet just searches
+  // the shared corpus, same as before this feature existed.
+  const workspaceId = getWorkspaceId(req);
 
   try {
     const decision = await runTicket(
       { channel, customerName, customerContext, message, category },
       hashIp(ip),
       turnstileToken,
-      ip
+      ip,
+      workspaceId ? { id: workspaceId, includeShared } : undefined
     );
     return NextResponse.json(decision);
   } catch (err) {

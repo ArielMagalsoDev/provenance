@@ -12,6 +12,8 @@ import { screenQuestion } from "../lib/screen";
 import { retrieve } from "../lib/retrieve";
 import { generateAnswer } from "../lib/generate";
 import { groundAnswer, deriveCitations } from "../lib/ground";
+import { getSupabaseAdmin } from "../lib/supabaseAdmin";
+import { embedTexts } from "../lib/embed";
 import type { GroundingResult } from "../lib/types";
 
 type EvalCase = {
@@ -20,7 +22,51 @@ type EvalCase = {
   question: string;
   note?: string;
   expect: { outcome: "answered" | "refused" | "blocked"; expectCitesAnyOf?: string[] };
+  // ws-* cases only — routes retrieval through a throwaway workspace fixture
+  // (see setupWorkspaceFixture) instead of the shared corpus, to test the
+  // learned-passage code path lib/inbox.ts's approve flow writes into.
+  workspace?: boolean;
 };
+
+// Fixed, not random: if a previous run's teardown ever failed partway, the
+// next run's setup upserts onto the SAME id rather than orphaning a fresh
+// UUID every time — self-healing instead of accumulating stray fixtures.
+const FIXTURE_WORKSPACE_ID = "00000000-0000-4000-8000-000000000001";
+const FIXTURE_PASSAGE_ID = "learned-fixture-01";
+
+/** Mirrors what lib/inbox.ts's resolveTicket() actually writes on approve —
+ *  a real "learned" passage, not a mocked retrieval result — so this eval
+ *  exercises the genuine retrieval/generation/grounding path, just skipping
+ *  the HTTP approve call itself (same "call lib/ directly" posture as the
+ *  rest of this file). */
+async function setupWorkspaceFixture(): Promise<void> {
+  const content =
+    "Q: What is the guest badge PIN reset procedure for the 4th floor kiosk?\n" +
+    "A (operator-approved): The 4th floor kiosk guest badge PIN can be reset by holding the front-desk " +
+    "override key for 3 seconds, then re-entering the visitor's phone number.";
+  const [embedding] = await embedTexts([content]);
+  const { error } = await getSupabaseAdmin()
+    .from("passages")
+    .upsert(
+      {
+        id: FIXTURE_PASSAGE_ID,
+        source_file: "Operator approved",
+        heading: "4th floor kiosk guest badge PIN reset",
+        content,
+        token_count: Math.ceil(content.length / 4),
+        embedding,
+        workspace_id: FIXTURE_WORKSPACE_ID,
+        origin: "learned",
+      },
+      { onConflict: "id" }
+    );
+  if (error) throw new Error(`setupWorkspaceFixture failed: ${error.message}`);
+}
+
+async function teardownWorkspaceFixture(): Promise<void> {
+  const { error } = await getSupabaseAdmin().from("passages").delete().eq("workspace_id", FIXTURE_WORKSPACE_ID);
+  if (error) console.error(`teardownWorkspaceFixture failed (non-fatal): ${error.message}`);
+}
 
 type CaseResult = {
   case: EvalCase;
@@ -54,7 +100,8 @@ async function runCase(evalCase: EvalCase): Promise<CaseResult> {
     };
   }
 
-  const retrieval = await retrieve(evalCase.question);
+  const workspaceScope = evalCase.workspace ? { id: FIXTURE_WORKSPACE_ID, includeShared: false } : undefined;
+  const retrieval = await retrieve(evalCase.question, undefined, workspaceScope);
   const generation = await generateAnswer(evalCase.question, retrieval.passages);
 
   if ("ok" in generation) {
@@ -171,14 +218,27 @@ async function main() {
 
   console.log(`Running ${cases.length} eval cases against the pipeline directly...\n`);
 
+  const needsFixture = cases.some((c) => c.workspace);
+  if (needsFixture) {
+    console.log("Setting up workspace fixture (ws-* cases)...");
+    await setupWorkspaceFixture();
+  }
+
   const results: CaseResult[] = [];
-  for (const evalCase of cases) {
-    const result = await runCase(evalCase);
-    results.push(result);
-    const mark = result.correct ? "PASS" : "FAIL";
-    console.log(
-      `[${mark}] ${evalCase.id} (${evalCase.bucket}) expected=${evalCase.expect.outcome} actual=${result.actualOutcome} ${result.latencyMs}ms`
-    );
+  try {
+    for (const evalCase of cases) {
+      const result = await runCase(evalCase);
+      results.push(result);
+      const mark = result.correct ? "PASS" : "FAIL";
+      console.log(
+        `[${mark}] ${evalCase.id} (${evalCase.bucket}) expected=${evalCase.expect.outcome} actual=${result.actualOutcome} ${result.latencyMs}ms`
+      );
+    }
+  } finally {
+    if (needsFixture) {
+      console.log("Tearing down workspace fixture...");
+      await teardownWorkspaceFixture();
+    }
   }
 
   const buckets = ["answerable", "unanswerable", "adversarial"] as const;

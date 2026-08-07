@@ -5,11 +5,13 @@
 import { randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "./supabaseAdmin";
 import { runAskPipeline } from "./pipeline";
+import type { WorkspaceScope } from "./retrieve";
 import type {
   AskResponse,
   AutomationDecision,
   AuditEvent,
   Citation,
+  PassageOrigin,
   SupportTicket,
   ReviewHandoff,
   RetrievedPassage,
@@ -20,7 +22,12 @@ import type {
 // Full per-document version history is out of scope for this demo.
 export const CORPUS_VERSION = "v1-2026-08-06";
 
-function documentTitleFromSourceFile(sourceFile: string): string {
+// Provenance is this demo's whole thesis, so a citation's title has to say
+// where content actually came from, not just derive a pretty label from a
+// corpus filename that doesn't exist for the other two origins.
+function documentTitleFromPassage(sourceFile: string, origin: PassageOrigin): string {
+  if (origin === "learned") return "Operator approved";
+  if (origin === "uploaded") return sourceFile; // the visitor's own filename, shown as-is
   return sourceFile
     .replace(/\.md$/, "")
     .split("-")
@@ -72,10 +79,13 @@ function toCitations(response: AskResponse): Citation[] {
     .filter((p): p is RetrievedPassage => Boolean(p))
     .map((p) => ({
       documentId: p.id,
-      documentTitle: documentTitleFromSourceFile(p.sourceFile),
+      documentTitle: documentTitleFromPassage(p.sourceFile, p.origin),
       section: p.heading,
       passage: p.content,
-      documentVersion: CORPUS_VERSION,
+      // Corpus version stamp only means something for the shared corpus —
+      // overlay content is session-scoped, not versioned document history.
+      documentVersion: p.origin === "corpus" ? CORPUS_VERSION : "session overlay",
+      origin: p.origin,
     }));
 }
 
@@ -149,11 +159,37 @@ async function persistAuditEvents(events: AuditEvent[]): Promise<void> {
 
 export type TicketInput = Omit<SupportTicket, "id" | "receivedAt">;
 
+/** Real, persisted ticket row — status "open" is what the Agent Inbox queue
+ *  reads from. workspaceId scopes the row to one visitor's session the same
+ *  way it scopes passages; null means a shared-demo ticket (guided scenarios,
+ *  anonymous free-text with no workspace yet). */
+async function persistTicket(fullTicket: SupportTicket, workspaceId: string | null, decision: AutomationDecision): Promise<void> {
+  const { error } = await getSupabaseAdmin().from("tickets").insert({
+    id: fullTicket.id,
+    workspace_id: workspaceId,
+    channel: fullTicket.channel,
+    customer_name: fullTicket.customerName,
+    customer_context: fullTicket.customerContext ?? null,
+    category: fullTicket.category,
+    message: fullTicket.message,
+    outcome: decision.outcome,
+    reason: decision.reason,
+    proposed_response: decision.proposedResponse,
+    citations: decision.citations,
+    groundedness: decision.groundedness,
+    status: decision.outcome === "human_review" ? "open" : "resolved",
+    ask_response: decision.askResponse, // full pipeline detail — see the tickets_ask_response migration
+    created_at: fullTicket.receivedAt,
+  });
+  if (error) throw new Error(`persistTicket failed: ${error.message}`);
+}
+
 export async function runTicket(
   ticket: TicketInput,
   ipHash: string,
   turnstileToken: string,
-  clientIp: string
+  clientIp: string,
+  workspace?: WorkspaceScope
 ): Promise<AutomationDecision> {
   const fullTicket: SupportTicket = {
     ...ticket,
@@ -161,14 +197,12 @@ export async function runTicket(
     receivedAt: new Date().toISOString(),
   };
 
-  const askResponse = await runAskPipeline(ticket.message, ipHash, turnstileToken, clientIp);
+  const askResponse = await runAskPipeline(ticket.message, ipHash, turnstileToken, clientIp, workspace);
   const outcome = outcomeToDecision(askResponse.outcome);
   const reason = deriveReason(askResponse);
   const auditEvents = synthesizeAuditEvents(fullTicket.id, askResponse, outcome, reason);
 
-  await persistAuditEvents(auditEvents);
-
-  return {
+  const decision: AutomationDecision = {
     ticketId: fullTicket.id,
     outcome,
     reason,
@@ -180,6 +214,10 @@ export async function runTicket(
     ticket: fullTicket,
     askResponse,
   };
+
+  await Promise.all([persistAuditEvents(auditEvents), persistTicket(fullTicket, workspace?.id ?? null, decision)]);
+
+  return decision;
 }
 
 export function toReviewHandoff(decision: AutomationDecision): ReviewHandoff | null {

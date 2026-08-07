@@ -6,6 +6,7 @@ import type { AutomationDecision, AuditEvent, SupportTicket } from "@/lib/types"
 import { EvidenceSteps } from "./EvidenceSteps";
 import { DecisionPanel } from "./DecisionPanel";
 import { TurnstileWidget } from "./TurnstileWidget";
+import { WorkspaceUpload } from "./WorkspaceUpload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -74,6 +75,7 @@ export function TicketWorkflow() {
   const [decision, setDecision] = useState<AutomationDecision | null>(null);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [workspaceScope, setWorkspaceScope] = useState<{ active: boolean; includeShared: boolean } | null>(null);
 
   async function submit(payload: Draft) {
     if (!payload.message.trim() || loading) return;
@@ -84,7 +86,7 @@ export function TicketWorkflow() {
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, turnstileToken: token }),
+        body: JSON.stringify({ ...payload, turnstileToken: token, includeShared: workspaceScope?.includeShared ?? true }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -135,7 +137,11 @@ export function TicketWorkflow() {
           live; only the send/escalate action is simulated.
         </p>
 
-        <div className="grid-3" style={{ marginTop: "28px" }}>
+        <div style={{ marginTop: "28px" }}>
+          <WorkspaceUpload token={token} onStatusChange={setWorkspaceScope} />
+        </div>
+
+        <div className="grid-3">
           {GUIDED_SCENARIOS.map((s, i) => (
             <button
               key={s.id}
