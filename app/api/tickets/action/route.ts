@@ -1,7 +1,8 @@
 // Records a simulated downstream action (send/escalate) as an audit event. This is
-// deliberately the only thing it does — no real email/ticketing integration exists
-// yet (docs/PRODUCT-PLAN.md Phase 4). It never touches the model pipeline, so it
-// costs nothing and isn't rate-limited or spend-capped.
+// deliberately the only thing it does — replying to the customer stays simulated even
+// now that a real connector exists (see lib/slack.ts for the operator-notification
+// side). It never touches the model pipeline, so it costs nothing and isn't
+// rate-limited or spend-capped.
 import { NextResponse } from "next/server";
 import { recordSimulatedAction } from "@/lib/tickets";
 

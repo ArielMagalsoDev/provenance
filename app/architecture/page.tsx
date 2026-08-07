@@ -43,11 +43,13 @@ const STAGES = [
     title: "Ticketing and messaging integration",
     body: (
       <>
-        The guided demo simulates this stage: an approved response can be marked &quot;sent&quot; and a
-        human-review ticket can be marked &quot;escalated to Operations,&quot; each logged as a real audit event.
-        No email, helpdesk, or chat platform is actually connected — see the roadmap in{" "}
-        <code>docs/PRODUCT-PLAN.md</code> for what a real integration (webhook intake, idempotent delivery, one
-        downstream connector) would add.
+        Replying to the customer stays simulated — an approved response is marked &quot;sent&quot; without
+        touching a real email or helpdesk system. But when a Slack connector is configured, the notification
+        itself is real: every ticket posts to a Slack channel, and a human-review ticket gets clickable
+        Approve/Reject buttons that resolve the ticket for real from inside Slack — the same effect as acting in
+        the Agent Inbox, signature-verified and idempotent against retries. See{" "}
+        <code>docs/PLAN-slack-integration.md</code> for the design, and <code>docs/PRODUCT-PLAN.md</code> for what
+        a CRM/helpdesk connector on top of this would add.
       </>
     ),
   },
