@@ -2,7 +2,8 @@
 // Postgres function (exact scan — see the "no ivfflat" note in supabase/migrations).
 import { getSupabaseAdmin } from "./supabaseAdmin";
 import { embedQuery } from "./embed";
-import type { RetrievedPassage } from "./types";
+import { WORKSPACE_TTL_MINUTES } from "./workspace";
+import type { PassageOrigin, RetrievedPassage } from "./types";
 
 const RETRIEVAL_K = Number(process.env.RETRIEVAL_K ?? 4);
 
@@ -12,11 +13,18 @@ type MatchPassagesRow = {
   heading: string | null;
   content: string;
   similarity: number;
+  origin: PassageOrigin;
+};
+
+export type WorkspaceScope = {
+  id: string;
+  includeShared?: boolean; // false = "my docs only" toggle
 };
 
 export async function retrieve(
   question: string,
-  k: number = RETRIEVAL_K
+  k: number = RETRIEVAL_K,
+  workspace?: WorkspaceScope
 ): Promise<{ passages: RetrievedPassage[]; k: number; latencyMs: number }> {
   const start = Date.now();
 
@@ -25,6 +33,9 @@ export async function retrieve(
   const { data, error } = await getSupabaseAdmin().rpc("match_passages", {
     query_embedding: queryEmbedding,
     match_count: k,
+    p_workspace: workspace?.id ?? null,
+    p_include_shared: workspace?.includeShared ?? true,
+    p_ttl_minutes: WORKSPACE_TTL_MINUTES,
   });
 
   if (error) {
@@ -41,6 +52,7 @@ export async function retrieve(
     heading: row.heading,
     content: row.content,
     similarity: row.similarity,
+    origin: row.origin,
   }));
 
   return { passages, k, latencyMs: Date.now() - start };

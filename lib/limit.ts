@@ -10,7 +10,10 @@ import type { AskResponse } from "./types";
 
 const RATE_LIMIT_PER_HOUR = Number(process.env.RATE_LIMIT_PER_HOUR ?? 10);
 const DAILY_SPEND_CAP_USD = Number(process.env.DAILY_SPEND_CAP_USD ?? 5);
-const CACHE_TTL_HOURS = 24;
+// Minutes, not hours: the RPC's TTL parameter is a Postgres int, and the
+// workspace-scoped TTL (30 min) isn't a whole number of hours — 0.5 failed
+// int coercion server-side and 500'd every workspace-scoped ask.
+const CACHE_TTL_MINUTES = 24 * 60;
 
 // Flat per-query cost estimates, not metered exact token usage — a documented
 // simplification (see README limitations). Split into two charges so a request that
@@ -33,8 +36,15 @@ export function normalizeQuestion(question: string): string {
   return question.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-export function hashQuestion(question: string): string {
-  return createHash("sha256").update(normalizeQuestion(question)).digest("hex");
+// workspaceKeyPart, when present, namespaces the cache key so a workspace-
+// scoped answer (one that may cite an uploaded/learned passage) can never be
+// served to — or poisoned by — a different visitor or the shared-corpus
+// cache. Omitted entirely for anonymous visitors with no workspace content,
+// so the pre-warmed guided-scenario cache entries are untouched.
+export function hashQuestion(question: string, workspaceKeyPart?: string): string {
+  return createHash("sha256")
+    .update((workspaceKeyPart ?? "") + normalizeQuestion(question))
+    .digest("hex");
 }
 
 /** Atomic, race-safe: serializes concurrent callers with the same IP via an advisory lock. */
@@ -48,10 +58,15 @@ export async function checkRateLimit(ipHash: string): Promise<boolean> {
   return Boolean(data);
 }
 
-export async function getCachedResponse(questionHash: string): Promise<AskResponse | null> {
+// ttlMinutes is caller-supplied (not always CACHE_TTL_MINUTES): a workspace-
+// scoped answer must not outlive the overlay content it cites, so the
+// pipeline passes WORKSPACE_TTL_MINUTES for those hashes — otherwise a
+// visitor could get a "correct-looking" cached answer citing a document that
+// already expired and was removed. Must be a whole number (Postgres int).
+export async function getCachedResponse(questionHash: string, ttlMinutes: number = CACHE_TTL_MINUTES): Promise<AskResponse | null> {
   const { data, error } = await getSupabaseAdmin().rpc("get_cached_response", {
     p_hash: questionHash,
-    p_ttl_hours: CACHE_TTL_HOURS,
+    p_ttl_minutes: Math.round(ttlMinutes),
   });
   if (error) throw new Error(`getCachedResponse failed: ${error.message}`);
   return (data as AskResponse | null) ?? null;
@@ -62,6 +77,15 @@ export async function setCachedResponse(questionHash: string, response: AskRespo
     .from("response_cache")
     .upsert({ question_hash: questionHash, response, created_at: new Date().toISOString() }, { onConflict: "question_hash" });
   if (error) throw new Error(`setCachedResponse failed: ${error.message}`);
+}
+
+/** Used when an operator approves a correction (see lib/inbox.ts): without
+ *  this, the ticket's original question keeps serving its stale cached
+ *  refusal for up to 24h even though the corpus now has an answer for it
+ *  (the response-cache-never-auto-invalidates gotcha, HANDOFF.md #8). */
+export async function deleteCachedResponse(questionHash: string): Promise<void> {
+  const { error } = await getSupabaseAdmin().from("response_cache").delete().eq("question_hash", questionHash);
+  if (error) throw new Error(`deleteCachedResponse failed: ${error.message}`);
 }
 
 /** Atomic charge (or refund, with a negative amount). Returns the day's new total. */

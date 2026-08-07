@@ -1,7 +1,8 @@
 # HANDOFF — grounded-rag / Meridian Assist
 
 Read this first in a new session before touching anything. Written 2026-08-06 at the
-end of a long build session — everything below is current as of that moment.
+end of a long build session; **updated 2026-08-07** — see "Update: Agent Inbox + custom
+knowledge upload" near the end for what changed since.
 
 ## What this is
 
@@ -24,14 +25,17 @@ Three source-of-truth docs, read in this order for depth:
 
 - **Code is fully built and locally verified.** Typecheck clean, `npm run build`
   clean, all pages manually verified in-browser, full eval suite passing.
-- **Git: one commit exists** (the original grounded-rag base build — Phases 0-8 of
-  `CLAUDE.md`), already pushed to `github.com/ArielMagalsoDev/grounded-rag` (public,
-  `main` branch) and deployed live at **https://grounded-rag-six.vercel.app**.
-- **Everything since that commit is uncommitted.** The entire Meridian Assist ticket
-  layer, both visual redesigns, and the shadcn/ui integration exist only in the
-  working directory. **Run `git status` before anything else** — there will be a lot
-  of untracked/modified files. The live Vercel URL still shows the pre-redesign
-  grounded-rag look until this gets pushed.
+- **Git: two commits exist on `main`**, both pushed and live at
+  **https://grounded-rag-six.vercel.app** (`ArielMagalsoDev/grounded-rag`, public):
+  the original base build, then a second commit covering the Meridian Assist ticket
+  layer + all three design passes (Meta → mockup → Salix) + every fix made along the
+  way. **Run `git status` before anything else** — the Agent Inbox / custom-upload
+  work (below) is uncommitted on top of that.
+- **Commit history was rewritten once** (2026-08-07, `git filter-branch` +
+  force-push) to strip a `Co-Authored-By: Claude` trailer that had leaked into the
+  first commit from an earlier session — see [[no-claude-coauthor-trailer]] in
+  memory. **Never add that trailer to a commit in this repo** (or any of Ariel's
+  repos — it adds "claude" to the GitHub Contributors list, which he doesn't want).
 - **Standing rule: never commit, push, or deploy without Ariel explicitly saying so.**
   Build, verify locally, stop, report. This has held all session — don't break it.
 
@@ -204,6 +208,7 @@ GROUNDEDNESS_MIN_CLAIM_SCORE=0.40
 RETRIEVAL_K=4
 DAILY_SPEND_CAP_USD=5
 RATE_LIMIT_PER_HOUR=10
+WORKSPACE_TTL_MINUTES=30         # optional, defaults to 30 if unset — Agent Inbox / upload overlay retention
 ```
 
 Same values are set on Vercel for `production` + `preview` environments already (set
@@ -225,10 +230,89 @@ Use the `Browser` preview tools (not raw `npm run dev` in a terminal) to actuall
 at pages — this project's launch.json entry is named `grounded-rag`, configured in
 the **session root's** `.claude/launch.json`, not inside this repo.
 
+## Update: Agent Inbox + custom knowledge upload (2026-08-07, uncommitted)
+
+Two new features on top of the unchanged pipeline, both built on one mechanism — a
+per-visitor, cookie-identified, time-limited **workspace overlay** on the `passages`
+table. Full design: `docs/PLAN-hitl-and-workspaces.md`. **Uncommitted** — say go.
+
+- **Isolation is by cookie, never by IP** — an `httpOnly`/`Secure`/`SameSite=Lax`
+  random UUID (`lib/workspace.ts`), minted server-side on first write (approve or
+  upload). IP hash stays scoped to rate-limiting only; keying content visibility off
+  IP would leak between visitors sharing a public IP (office/café WiFi, CGNAT).
+- **`passages` gained `workspace_id uuid null` + `origin` (`corpus|learned|uploaded`)**.
+  `match_passages` now takes `p_workspace`, `p_include_shared`, `p_ttl_minutes` and
+  filters overlay rows by `created_at > now() - ttl` **in the query itself** — expiry
+  is exact and doesn't depend on a cleanup job having run recently. Retention is 30
+  min (`WORKSPACE_TTL_MINUTES` env var), for both uploaded docs and learned
+  corrections — one TTL, not two policies to reason about.
+- **New `tickets` table** — tickets were ephemeral before (only `audit_events`
+  persisted); the inbox needs a real queue. Also stores the full `AskResponse` per
+  ticket (`ask_response` column) so the inbox renders the exact same evidence panel
+  as `/demo` — non-negotiable #1 applies there too.
+- **Agent Inbox** (`/inbox`, `lib/inbox.ts`, `app/api/inbox*`): lists escalated
+  tickets, operator edits/approves a response → embedded as a `learned-*` passage in
+  their workspace → the **stale cached refusal for that exact question is deleted**
+  (same gotcha as #8 below, just a new call site) so a same-session replay answers
+  immediately, citing an "Operator approved" badge.
+- **Custom knowledge upload** (`WorkspaceUpload.tsx` on `/demo`, `app/api/workspace/*`):
+  .md/.txt/.pdf → `lib/chunk.ts` (chunker extracted out of `scripts/ingest.ts`, now
+  shared) → embedded (free) → `origin='uploaded'` passages. PDF text extraction via
+  **`unpdf`** (new dependency — serverless-friendly, no native binaries; the one
+  library this feature genuinely needs). Caps: 2 MB / 40 pages / 120k extracted
+  chars / 40 passages.
+- **Evals**: 2 new cases (`ws-01`, `ws-02`) in `evals/cases.json`, gated by a
+  `"workspace": true` flag. `evals/run.ts` sets up a fixed-UUID fixture workspace
+  before the run and tears it down after (in a `finally`) — self-healing if a
+  previous teardown ever fails, since the next run's setup just upserts onto the
+  same id. All **45 cases pass, 100%/0%/0%** — the original 43 are unaffected.
+
+New gotchas from building this:
+
+13. **Supabase-js query builders are "thenable"** — `await`-ing one early (e.g. to
+    return it from a helper function) resolves it into a plain response object with
+    no more query methods on it. Chain `.limit()`/`.select()`/etc. *before* the only
+    `await`, never after. Bit `lib/inbox.ts`'s first draft of the shared
+    workspace-or-null filter helper.
+14. **`git filter-branch` also rewrites your local `refs/remotes/origin/*` tracking
+    ref**, which makes `--force-with-lease`'s stored comparison point stale and the
+    push gets rejected as "stale info" — even though the actual remote hasn't
+    changed. Fix: `git fetch origin main` before retrying the force-push (or use
+    `--force-with-lease=main:<known-remote-hash>` explicitly).
+15. **`repeat(N, 1fr)` grid tracks don't shrink below their content's min-content
+    size** — same underlying CSS Grid behavior as gotcha 9's cascade-layer bug, but
+    a different trigger: a plain `1fr` track (not `minmax(0, 1fr)`) can force a whole
+    grid to overflow if one cell's content is wider than its 1/N share. Bit the
+    Business Impact Calculator's stat grid on mobile during the Salix redesign;
+    fixed by switching the shared `.grid-2/3/4/split` utility classes to
+    `minmax(0, Nfr)` tracks everywhere, not just the one call site that broke.
+16. **Never mount two `TurnstileWidget`s on one page.** Next.js `<Script>` dedupes
+    by src, and with two widget instances the *first* one's callback silently never
+    fires — its token stays empty forever, so every ticket submit came back
+    "blocked (bot_check_failed)" regardless of the question, while the second
+    widget worked fine. One widget per page; children that need the token take it
+    as a prop (see `WorkspaceUpload`'s header comment).
+17. **RPC TTL parameters are Postgres ints — pass whole minutes, not fractional
+    hours.** `get_cached_response` originally took `p_ttl_hours int`; the
+    30-minute workspace cache TTL became `0.5`, Postgres threw `invalid input
+    syntax for type integer: "0.5"`, and every workspace-scoped ask 500'd.
+    Migration `cache_ttl_minutes` replaced it with `p_ttl_minutes int` (24h =
+    1440). If you add a new time-bounded RPC, take minutes as int from the start.
+18. **Workspace-mode screening needs its own topic scope.** The screening
+    classifier is hard-scoped to coworking topics; with an uploaded document
+    active, every question about that document classified "off_topic" and got
+    blocked before retrieval — the upload feature was unusable until
+    `screenQuestion(question, workspaceActive)` learned to widen the off_topic
+    definition when overlay content exists. Injection rules identical in both
+    modes; only the topic scope changes.
+
 ## Outstanding decisions / next actions
 
-1. **Say go to commit + push.** Nothing since the first commit has been pushed. A
-   push to `main` auto-deploys via the existing Vercel↔GitHub connection.
+1. **Say go to commit + push the Agent Inbox / upload work** (everything in the
+   "Update" section above). A push to `main` auto-deploys via the existing
+   Vercel↔GitHub connection. `unpdf` needs `npm install` on whatever machine deploys
+   it — already in `package.json`/`package-lock.json` once committed, so a normal
+   Vercel build picks it up automatically.
 2. **Refusal screenshot for the README** (`docs/refusal-screenshot.png`) — still never
    actually captured to disk; ask a question the corpus doesn't cover (e.g. parking)
    on `/demo` and screenshot the resulting panel.

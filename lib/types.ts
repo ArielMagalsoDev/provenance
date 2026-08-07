@@ -8,7 +8,9 @@ export type Passage = {
   content: string;
 };
 
-export type RetrievedPassage = Passage & { similarity: number };
+export type PassageOrigin = "corpus" | "learned" | "uploaded";
+
+export type RetrievedPassage = Passage & { similarity: number; origin: PassageOrigin };
 
 export type ScreenResult = {
   passed: boolean;
@@ -81,6 +83,18 @@ export type SupportTicket = {
   category: string;
 };
 
+// --- Workspace overlay (Agent Inbox + custom knowledge upload) ---
+// See docs/PLAN-hitl-and-workspaces.md. A workspace is an anonymous,
+// cookie-identified, time-limited overlay on the shared corpus — never a
+// tenant/account in the auth sense.
+
+export type WorkspaceStatus = {
+  workspaceId: string | null;
+  passageCount: number;
+  sources: { sourceFile: string; origin: PassageOrigin; passageCount: number }[];
+  expiresAt: string | null; // null when the workspace has no content yet
+};
+
 // Claim-level verification IS the claim check — same data, ticket-facing name.
 export type ClaimCheck = Claim;
 
@@ -90,6 +104,7 @@ export type Citation = {
   section: string | null; // passage heading
   passage: string; // passage content
   documentVersion: string; // corpus version stamp — see lib/tickets.ts CORPUS_VERSION
+  origin: PassageOrigin; // lets the UI badge "Operator approved" / your filename distinctly
 };
 
 export type AuditEvent = {

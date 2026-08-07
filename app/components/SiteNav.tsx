@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { InboxNavLink } from "./InboxNavLink";
 
 export function SiteNav() {
   return (
@@ -24,6 +25,7 @@ export function SiteNav() {
               <Link href="/corpus" className="pill-tab" style={{ border: "none" }}>
                 Corpus
               </Link>
+              <InboxNavLink />
             </div>
             <div className="nav-links">
               <Button asChild variant="ink" className="!px-[20px] !py-[9px] !text-[13px]">
