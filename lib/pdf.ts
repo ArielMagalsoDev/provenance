@@ -12,7 +12,16 @@ export type PdfExtractResult = { text: string; pageCount: number };
  *  a near-empty result as a friendly error, not silently ingest an empty
  *  document. */
 export async function extractPdfText(bytes: Uint8Array): Promise<PdfExtractResult> {
-  const pdf = await getDocumentProxy(bytes);
-  const { text, totalPages } = await extractText(pdf, { mergePages: true });
-  return { text, pageCount: totalPages };
+  // TEMPORARY diagnostic logging — do not merge past this debug session.
+  console.error("[extractPdfText] DEBUG start, bytesLength=", bytes.length);
+  try {
+    const pdf = await getDocumentProxy(bytes);
+    console.error("[extractPdfText] DEBUG gotDocumentProxy, numPages=", (pdf as { numPages?: number }).numPages);
+    const { text, totalPages } = await extractText(pdf, { mergePages: true });
+    console.error("[extractPdfText] DEBUG extractText done, textLength=", text.length, "totalPages=", totalPages);
+    return { text, pageCount: totalPages };
+  } catch (err) {
+    console.error("[extractPdfText] DEBUG threw:", err instanceof Error ? { message: err.message, stack: err.stack, name: err.name } : err);
+    throw err;
+  }
 }
