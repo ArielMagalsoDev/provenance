@@ -1,4 +1,4 @@
--- Append-only audit trail for Meridian Assist tickets. Real, persisted records — not
+-- Append-only audit trail for Provenance tickets. Real, persisted records — not
 -- simulated — even though the "reply sent" / "escalated" action itself is simulated
 -- (no real email/ticketing integration exists yet; see docs/PRODUCT-PLAN.md Phase 4).
 create table audit_events (

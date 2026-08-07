@@ -1,6 +1,6 @@
 // Thin HTTP wrapper over lib/pipeline.ts. The actual bot-check -> rate-limit -> cache
 // -> spend-cap -> screen -> retrieve -> generate -> ground ordering lives there, shared
-// with /api/tickets (the Meridian Assist ticket-shaped endpoint).
+// with /api/tickets (the Provenance ticket-shaped endpoint).
 import { NextResponse } from "next/server";
 import { runAskPipeline } from "@/lib/pipeline";
 import { getClientIp, hashIp } from "@/lib/limit";

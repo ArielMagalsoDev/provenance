@@ -7,8 +7,8 @@ import type { Metadata } from "next";
 import { renderMarkdownLite } from "../components/markdownLite";
 
 export const metadata: Metadata = {
-  title: "Evals — Meridian Assist",
-  description: "Committed eval scorecard for the Meridian Assist demo.",
+  title: "Evals — Provenance",
+  description: "Committed eval scorecard for the Provenance demo.",
 };
 
 export default function EvalsPage() {

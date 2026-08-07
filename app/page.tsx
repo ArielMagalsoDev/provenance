@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Meridian Assist",
+  title: "Provenance",
   description: "Resolve routine support questions without inventing company policy.",
 };
 
@@ -116,7 +116,7 @@ export default function Home() {
           Resolve routine support questions without inventing company policy.
         </h1>
         <p className="text-subtitle-md" style={{ maxWidth: "560px", color: "var(--steel)", margin: "20px auto 0" }}>
-          Meridian Assist reads approved documents, drafts a cited answer, and knows when to involve your operations
+          Provenance reads approved documents, drafts a cited answer, and knows when to involve your operations
           team — visibly, with the reasoning shown at every step.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "14px", marginTop: "32px", justifyContent: "center" }}>

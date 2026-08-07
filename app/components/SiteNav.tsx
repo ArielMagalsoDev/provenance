@@ -11,9 +11,9 @@ export function SiteNav() {
       <div className="nav-wrap">
         <div className="shell">
           <nav className="nav-float" aria-label="Primary navigation">
-            <Link className="brand" href="/" aria-label="Meridian Assist home">
+            <Link className="brand" href="/" aria-label="Provenance home">
               <span className="brand-mark" aria-hidden="true" />
-              <span>Meridian Assist</span>
+              <span>Provenance</span>
             </Link>
             <div className="nav-pills">
               <Link href="/architecture" className="pill-tab" style={{ border: "none" }}>

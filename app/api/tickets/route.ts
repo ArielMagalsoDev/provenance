@@ -1,4 +1,4 @@
-// Meridian Assist ticket endpoint. Same safety-critical ordering as /api/ask (via
+// Provenance ticket endpoint. Same safety-critical ordering as /api/ask (via
 // lib/pipeline.ts), wrapped as an AutomationDecision with a persisted audit trail.
 import { NextResponse } from "next/server";
 import { runTicket } from "@/lib/tickets";

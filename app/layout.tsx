@@ -8,7 +8,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Meridian Assist",
+  title: "Provenance",
   description: "Resolve routine support questions without inventing company policy.",
 };
 
