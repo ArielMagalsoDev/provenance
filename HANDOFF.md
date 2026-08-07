@@ -201,8 +201,8 @@ serif headlines) was fully replaced — don't resurrect it, it's gone from
 ANTHROPIC_API_KEY               # real key, already populated
 SUPABASE_URL                    # https://vtjswmwbcwfonvmxjapz.supabase.co
 SUPABASE_SERVICE_ROLE_KEY       # real key, already populated
-TURNSTILE_SECRET_KEY            # Cloudflare's published TEST key (1x0000...AA) — always passes, safe for local dev, NOT set up for a real account yet
-NEXT_PUBLIC_TURNSTILE_SITE_KEY  # matching test site key (1x00000000000000000000AA)
+TURNSTILE_SECRET_KEY            # real Cloudflare secret key — see correction below
+NEXT_PUBLIC_TURNSTILE_SITE_KEY  # real Cloudflare site key — see correction below
 GROUNDEDNESS_THRESHOLD=0.70
 GROUNDEDNESS_MIN_CLAIM_SCORE=0.40
 RETRIEVAL_K=4
@@ -211,10 +211,18 @@ RATE_LIMIT_PER_HOUR=10
 WORKSPACE_TTL_MINUTES=30         # optional, defaults to 30 if unset — Agent Inbox / upload overlay retention
 ```
 
-Same values are set on Vercel for `production` + `preview` environments already (set
-via `vercel env add` during the original deploy — still using the Turnstile test keys
-there too, which is fine short-term since rate-limit + spend-cap still bound worst
-case, but should be swapped before the URL is shared widely).
+**Correction (2026-08-08):** this section and the "Outstanding" item below both said
+Turnstile was still on Cloudflare's published test keys — stale. Verified live on
+production: the site key actually served in the built JS bundle is
+`0x4AAAAAAEJFxJ7d1Sx4I8VQ` — real Cloudflare format (`0x4AAAAAA...`), not the test
+key's `1x0000...AA`. The matching secret key must be real too, not just the public site
+key — a mismatched real/test pair would fail `verifyTurnstile`'s siteverify call, and
+every real submission tested this session passed screening. This also explains an
+earlier-session puzzle: a random preview-deployment `*.vercel.app` URL threw Turnstile
+error 110200 (sitekey/domain mismatch) while the real `grounded-rag-six.vercel.app`
+domain worked fine — expected behavior for a domain-restricted real key, not a bug.
+Same values are set on Vercel for `production` + `preview` environments (`vercel env
+add` during an earlier deploy).
 
 ## Commands
 
@@ -364,8 +372,10 @@ end-to-end (only `.md` had been exercised before):
 2. **Refusal screenshot for the README** (`docs/refusal-screenshot.png`) — still never
    actually captured to disk; ask a question the corpus doesn't cover (e.g. parking)
    on `/demo` and screenshot the resulting panel.
-3. **Real Cloudflare Turnstile account** — currently using published test keys. Fine
-   for now, worth doing before the URL is shared beyond Ariel.
+3. ~~Real Cloudflare Turnstile account~~ — **already done**, this doc was stale. Verified
+   live 2026-08-08: production serves a real Cloudflare site key
+   (`0x4AAAAAAEJFxJ7d1Sx4I8VQ`), not the published test key. See the correction under
+   "Env vars" above.
 4. **Custom domain** — deferred by Ariel ("we change it later"). Two candidates
    floated: `rag.arielmagalso.com` (matches original naming) vs
    `assist.arielmagalso.com` (matches the Meridian Assist business repositioning).
