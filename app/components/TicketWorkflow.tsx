@@ -63,6 +63,7 @@ const AUDIT_LABEL: Record<AuditEvent["stage"], string> = {
   verification: "Claims verified",
   routing: "Decision recorded",
   action: "Action taken",
+  notification: "Operator notified",
 };
 
 const metaRow: React.CSSProperties = { display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--hairline-soft)" };
@@ -303,8 +304,10 @@ export function TicketWorkflow() {
           <span>
             This is a presentation-only simulation. In production, reply thresholds, permissions, retention, and
             escalation routes are configured by the workspace operator. Every decision above is real — screening,
-            retrieval, generation, and verification all run live against the actual pipeline; only send/escalate
-            is simulated.
+            retrieval, generation, and verification all run live against the actual pipeline. Sending a reply to
+            the customer stays simulated — no email or real ticketing system is touched — but when a Slack
+            connector is configured, the operator notification above is real, including the Approve/Reject
+            buttons on tickets routed to human review.
           </span>
         </div>
       </div>

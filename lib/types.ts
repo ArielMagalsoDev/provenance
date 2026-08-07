@@ -109,7 +109,7 @@ export type Citation = {
 
 export type AuditEvent = {
   ticketId: string;
-  stage: "intake" | "screening" | "retrieval" | "generation" | "verification" | "routing" | "action";
+  stage: "intake" | "screening" | "retrieval" | "generation" | "verification" | "routing" | "action" | "notification";
   outcome: string;
   detail: string | null;
   timestamp: string;

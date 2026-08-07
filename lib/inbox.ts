@@ -3,10 +3,12 @@
 // workspace overlay as a "learned" passage and invalidates the stale cached
 // refusal for that exact question — see docs/PLAN-hitl-and-workspaces.md and
 // the response-cache-never-auto-invalidates gotcha (HANDOFF.md #8).
+import { randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "./supabaseAdmin";
 import { embedTexts } from "./embed";
 import { hashQuestion, deleteCachedResponse } from "./limit";
 import { matchesDenyList } from "./screen";
+import { updateTicketMessage, type TicketSlackSummary } from "./slack";
 import type { AskResponse, AuditEvent, Citation } from "./types";
 
 const MAX_OVERLAY_PASSAGES = 40;
@@ -25,7 +27,7 @@ export type InboxTicketRow = {
   citations: Citation[];
   groundedness: number | null;
   status: "open" | "resolved";
-  resolution: { action: "approved" | "dismissed"; editedResponse?: string; resolvedAt: string } | null;
+  resolution: { action: "approved" | "dismissed"; editedResponse?: string; resolvedAt: string; source?: "inbox" | "slack" } | null;
   askResponse: AskResponse | null; // full pipeline detail — same shape /demo renders
   createdAt: string;
 };
@@ -47,6 +49,8 @@ type TicketDbRow = {
   resolution: InboxTicketRow["resolution"];
   ask_response: AskResponse | null;
   created_at: string;
+  slack_channel: string | null;
+  slack_ts: string | null;
 };
 
 function rowToTicket(row: TicketDbRow): InboxTicketRow {
@@ -109,11 +113,44 @@ export type ResolveResult =
   | { ok: true; ticket: InboxTicketRow }
   | { ok: false; error: "not_found" | "already_resolved" | "denylist_blocked" | "workspace_full" | "empty_response" };
 
+function summaryFromRow(row: TicketDbRow): TicketSlackSummary {
+  return {
+    ticketId: row.id,
+    category: row.category,
+    customerName: row.customer_name,
+    channel: row.channel,
+    message: row.message,
+    outcome: row.outcome as TicketSlackSummary["outcome"],
+    reason: row.reason,
+    proposedResponse: row.proposed_response,
+    citationIds: (row.citations ?? []).map((c) => c.documentId),
+    groundedness: row.groundedness,
+  };
+}
+
+/** Best-effort — updateTicketMessage itself never throws (see lib/slack.ts),
+ *  and a ticket with no slack_ts (Slack unconfigured, or the post failed at
+ *  creation time) is a silent no-op, same as every other Slack call site. */
+async function updateSlackIfPosted(
+  row: TicketDbRow,
+  action: "approved" | "dismissed",
+  by: "inbox" | "slack",
+  slackUser?: string
+): Promise<void> {
+  if (!row.slack_channel || !row.slack_ts) return;
+  await updateTicketMessage(row.slack_channel, row.slack_ts, summaryFromRow(row), { action, by, slackUser });
+}
+
 export async function resolveTicket(
   ticketId: string,
   action: "approve" | "dismiss",
   editedResponse: string | undefined,
-  workspaceId: string
+  // null for a Slack-triggered resolve, which has no browser cookie — see
+  // the workspace fallback below. Always a concrete UUID from the /inbox
+  // route (ensureWorkspaceId never returns null).
+  workspaceId: string | null,
+  source: "inbox" | "slack" = "inbox",
+  slackUser?: string
 ): Promise<ResolveResult> {
   const supabase = getSupabaseAdmin();
   const { data, error: fetchErr } = await supabase.from("tickets").select("*").eq("id", ticketId).maybeSingle();
@@ -125,22 +162,35 @@ export async function resolveTicket(
   const now = new Date().toISOString();
 
   if (action === "dismiss") {
-    const resolution = { action: "dismissed" as const, resolvedAt: now };
+    const resolution = { action: "dismissed" as const, resolvedAt: now, source };
     const { error } = await supabase.from("tickets").update({ status: "resolved", resolution }).eq("id", ticketId);
     if (error) throw new Error(`resolveTicket dismiss failed: ${error.message}`);
-    await persistActionEvent(ticketId, "dismissed", "Operator dismissed without teaching a correction.");
+    await persistActionEvent(ticketId, "dismissed", `Operator dismissed without teaching a correction (via ${source}).`);
+    await updateSlackIfPosted(row, "dismissed", source, slackUser);
     return { ok: true, ticket: rowToTicket({ ...row, status: "resolved", resolution }) };
   }
 
   // approve
-  const answer = (editedResponse ?? "").trim();
+  // Slack's Approve button carries only the ticket id, not the draft text —
+  // there's no inline-edit affordance in Slack (see PLAN doc's "edit-before-
+  // approve stays /inbox-only" decision), so approving from Slack always
+  // teaches the draft exactly as posted, same text the reviewer just read.
+  const answer = (editedResponse ?? (source === "slack" ? row.proposed_response ?? "" : "")).trim();
   if (!answer) return { ok: false, error: "empty_response" };
   if (matchesDenyList(answer)) return { ok: false, error: "denylist_blocked" };
+
+  // A Slack click carries no browser cookie, so there's no "operator's own
+  // workspace" the way /inbox has one. Fall back to the ticket's own
+  // workspace (the correction then benefits the visitor who actually filed
+  // it) or, for a shared/anonymous ticket, mint a fresh one — mirroring
+  // exactly what ensureWorkspaceId does for a cookie-less /inbox request,
+  // just server-side instead of via a Set-Cookie response.
+  const targetWorkspaceId = workspaceId ?? row.workspace_id ?? randomUUID();
 
   const { count, error: countErr } = await supabase
     .from("passages")
     .select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspaceId);
+    .eq("workspace_id", targetWorkspaceId);
   if (countErr) throw new Error(`resolveTicket count failed: ${countErr.message}`);
   if ((count ?? 0) >= MAX_OVERLAY_PASSAGES) return { ok: false, error: "workspace_full" };
 
@@ -156,7 +206,7 @@ export async function resolveTicket(
       content,
       token_count: Math.ceil(content.length / 4),
       embedding,
-      workspace_id: workspaceId,
+      workspace_id: targetWorkspaceId,
       origin: "learned",
     },
     { onConflict: "id" }
@@ -167,15 +217,20 @@ export async function resolveTicket(
   // sitting under right now, so the replay in the UI answers immediately
   // instead of serving the stale refusal for up to 24h.
   await Promise.all([
-    deleteCachedResponse(hashQuestion(row.message, `ws:${workspaceId}:true:`)),
+    deleteCachedResponse(hashQuestion(row.message, `ws:${targetWorkspaceId}:true:`)),
     deleteCachedResponse(hashQuestion(row.message)),
   ]);
 
-  const resolution = { action: "approved" as const, editedResponse: answer, resolvedAt: now };
+  const resolution = { action: "approved" as const, editedResponse: answer, resolvedAt: now, source };
   const { error: updateErr } = await supabase.from("tickets").update({ status: "resolved", resolution }).eq("id", ticketId);
   if (updateErr) throw new Error(`resolveTicket update failed: ${updateErr.message}`);
 
-  await persistActionEvent(ticketId, "operator_approved", `Correction embedded as ${passageId}; response cache invalidated for this question.`);
+  await persistActionEvent(
+    ticketId,
+    "operator_approved",
+    `Correction embedded as ${passageId} (via ${source}); response cache invalidated for this question.`
+  );
+  await updateSlackIfPosted(row, "approved", source, slackUser);
 
   return { ok: true, ticket: rowToTicket({ ...row, status: "resolved", resolution }) };
 }

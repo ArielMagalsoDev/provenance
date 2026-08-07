@@ -5,6 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "./supabaseAdmin";
 import { runAskPipeline } from "./pipeline";
+import { postTicketNotification } from "./slack";
 import type { WorkspaceScope } from "./retrieve";
 import type {
   AskResponse,
@@ -184,6 +185,40 @@ async function persistTicket(fullTicket: SupportTicket, workspaceId: string | nu
   if (error) throw new Error(`persistTicket failed: ${error.message}`);
 }
 
+/** Posts the ticket to Slack (if configured), stores which message it became
+ *  so it can be updated in place on resolution, and records a real
+ *  "notification" audit event — appended directly onto `decision` (not just
+ *  persisted) so the response the caller already has in hand reflects it
+ *  immediately, matching non-negotiable #1's "nothing hidden" without
+ *  needing a second round-trip. Entirely best-effort: postTicketNotification
+ *  itself never throws (see lib/slack.ts), and every failure here is caught
+ *  so a Slack/DB hiccup can never fail an already-decided, already-persisted
+ *  ticket. */
+async function notifySlack(decision: AutomationDecision): Promise<void> {
+  try {
+    const posted = await postTicketNotification(decision);
+    if (!posted) return;
+
+    const { error } = await getSupabaseAdmin()
+      .from("tickets")
+      .update({ slack_channel: posted.channel, slack_ts: posted.ts })
+      .eq("id", decision.ticketId);
+    if (error) throw new Error(`notifySlack: storing slack_channel/ts failed: ${error.message}`);
+
+    const event: AuditEvent = {
+      ticketId: decision.ticketId,
+      stage: "notification",
+      outcome: "posted",
+      detail: `Posted to Slack (channel ${posted.channel}).`,
+      timestamp: new Date().toISOString(),
+    };
+    await persistAuditEvents([event]);
+    decision.auditEvents.push(event);
+  } catch (err) {
+    console.error("[lib/tickets] notifySlack failed (non-fatal, ticket already decided/persisted):", err);
+  }
+}
+
 export async function runTicket(
   ticket: TicketInput,
   ipHash: string,
@@ -216,6 +251,7 @@ export async function runTicket(
   };
 
   await Promise.all([persistAuditEvents(auditEvents), persistTicket(fullTicket, workspace?.id ?? null, decision)]);
+  await notifySlack(decision); // fire-and-forget internally; mutates decision.auditEvents on success — see notifySlack
 
   return decision;
 }
@@ -233,10 +269,11 @@ export function toReviewHandoff(decision: AutomationDecision): ReviewHandoff | n
   };
 }
 
-/** Logs a simulated downstream action (send/escalate) as its own audit event. No real
- * integration exists yet — see docs/PRODUCT-PLAN.md Phase 4 — so this only ever
- * records that the demo user clicked the button, never actually sends or escalates
- * anything externally. */
+/** Logs a simulated downstream action (send/escalate) as its own audit event. This
+ * specific action — replying to the customer — stays simulated even now that a real
+ * connector exists (see lib/slack.ts / docs/PLAN-slack-integration.md for the
+ * operator-notification side): no email or real ticketing system is touched, so this
+ * only ever records that the demo user clicked the button. */
 export async function recordSimulatedAction(ticketId: string, action: "sent" | "escalated"): Promise<AuditEvent> {
   const event: AuditEvent = {
     ticketId,

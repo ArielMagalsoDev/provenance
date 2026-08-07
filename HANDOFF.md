@@ -406,6 +406,57 @@ the stale name. Lesson: after a rename like this, verify the *deployed* output, 
 just that the local build compiled — a clean `npm run build` proves the code is
 correct, not that it shipped.
 
+## Update: Slack integration built — first real downstream connector (2026-08-08)
+
+Ariel asked what it'd take to prove the automation is real rather than simulated —
+landed on Slack over a CRM (HubSpot) specifically for demo value: a message visibly
+posts to a channel in real time, and `human_review` tickets get clickable
+Approve/Reject buttons a human can press *in Slack* that resolve the ticket for real.
+Full design in `docs/PLAN-slack-integration.md`. **Phases 0–4 built this session,
+Phase 5 (deploy + E2E verify) not started** — needs Ariel's go per the standing rule,
+and the interactive buttons can only be verified once `/api/slack/interact` is live
+(Slack's Request URL can't target localhost).
+
+**Built:** `lib/slack.ts` (Block Kit posting, HMAC signature verification,
+message-update-on-resolve, all fire-and-forget — Slack can never break the pipeline);
+migration adding `slack_channel`/`slack_ts` to `tickets`; `runTicket` posts on every
+ticket outcome and appends a real `notification` audit event; `resolveTicket` gained
+a `source` (`inbox`/`slack`) param and updates the Slack message in place after either
+side resolves; new `/api/slack/interact` route (signature-verified, idempotent via
+the existing `already_resolved` guard); UI truthfulness pass (`/demo`'s disclaimer,
+`/architecture`'s stage description) — customer-facing send/escalate stays simulated,
+the Slack notification is real when configured.
+
+**Real design gap caught and fixed while building, not after:** the first draft of
+`updateTicketMessage` replaced a resolved ticket's Slack message with just a status
+line ("Approved via Slack"), silently deleting the original question/answer/reason
+context — the code's own comment even claimed the opposite of what it did. Caught by
+actually re-reading the diff rather than trusting the docstring. Fixed by extracting
+a shared `buildInfoBlocks` helper so both the initial post and the resolve-time update
+render from the same source, with the status line appended, not swapped in.
+
+**Also worth knowing:** a Slack click carries no browser cookie, so `resolveTicket`
+can't use the existing "operator's own workspace" logic `/inbox` relies on
+(`ensureWorkspaceId`). Slack approvals fall back to the *ticket's own* `workspace_id`
+(benefits the original filer) or mint a fresh UUID for anonymous/shared tickets
+(mirrors what `/inbox` already does for a cookie-less request) — computed inline in
+`resolveTicket`, zero behavior change for the existing `/inbox` path.
+
+**Not yet done (Phase 5):** commit + push, deploy, then E2E verify against production
+— post an approved/human_review/blocked ticket and confirm the Slack messages look
+right, click Approve/Reject in Slack and confirm the ticket resolves + the learned
+passage lands + the cached refusal clears + the message updates in place, confirm a
+second click on the same button is a safe no-op, confirm `npm run evals` is still
+45/45 (should be — evals call the pipeline directly, never touch the ticket layer at
+all, so this is expected to be a non-issue, not something guessed at).
+
+**One credential-hygiene note for next session:** Ariel pasted a bot token, an
+app-level token, and the signing secret directly into chat this session while working
+through Slack's setup UI. Flagged each time and asked him to rotate — worth
+double-checking that actually happened before assuming the values now in Vercel are
+the post-rotation ones, since this session never saw whether he rotated before or
+after entering the final values.
+
 ## Outstanding decisions / next actions
 
 1. ~~Say go to commit + push the Agent Inbox / upload work~~ — done, see above; also
@@ -422,11 +473,11 @@ correct, not that it shipped.
    Turnstile hostname added to match). Product renamed to "Provenance" the same
    session (see the rename note near the top of this file), which is why this landed
    on `provenance.` rather than the earlier `rag.`/`assist.` candidates.
-5. **`docs/PRODUCT-PLAN.md` Phases 3-5** are still unbuilt: a held-out eval set (the
-   current 100%/0%/0% is a dev-set number the pipeline was iterated against directly —
-   not proof it generalizes), a real external integration (webhook intake, one
-   downstream connector), and a walkthrough video. All explicitly out of scope for
-   what's been built so far, not forgotten.
+5. **`docs/PRODUCT-PLAN.md` Phases 3-5** — a held-out eval set (the current
+   100%/0%/0% is a dev-set number the pipeline was iterated against directly — not
+   proof it generalizes) and a walkthrough video are still unbuilt. The "real
+   external integration (webhook intake, one downstream connector)" piece is now
+   partially done — see the Slack integration below — pending its own deploy/verify.
 6. **Full eval suite hasn't been re-run since the corpus grew to 52 passages** — the
    committed 100%/0%/0% scorecard predates `pricing-08`. Very unlikely to regress
    anything (the new passage only makes a previously-unanswerable-by-that-exact-passage
@@ -435,3 +486,7 @@ correct, not that it shipped.
    machine has the real keys, both for that and to confirm nothing else drifted.
 7. **`signaldesk`'s Supabase project is paused** (traded for the restore above) — 
    un-pause whenever that project is needed again; no data was lost.
+8. **Slack integration (Phases 0–4) is built but not deployed or E2E-verified** — see
+   the Slack update above and `docs/PLAN-slack-integration.md`'s status section. Say
+   go to commit + push once ready; then verify the Approve/Reject buttons live,
+   since they can't be tested against localhost.
