@@ -7,8 +7,8 @@ import type { Metadata } from "next";
 import { renderMarkdownLite } from "../components/markdownLite";
 
 export const metadata: Metadata = {
-  title: "Corpus — Meridian Assist",
-  description: "The full fictional policy corpus behind the Meridian Assist demo.",
+  title: "Corpus — Provenance",
+  description: "The full fictional policy corpus behind the Provenance demo.",
 };
 
 export default function CorpusPage() {

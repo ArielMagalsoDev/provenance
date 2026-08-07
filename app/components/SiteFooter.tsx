@@ -8,7 +8,7 @@ export function SiteFooter() {
           <div>
             <div className="brand" style={{ marginBottom: "12px" }}>
               <span className="brand-mark" aria-hidden="true" />
-              <span>Meridian Assist</span>
+              <span>Provenance</span>
             </div>
             <p className="text-body-sm" style={{ color: "var(--steel)", maxWidth: "260px" }}>
               A fictional support-automation concept — cited answers, human review, and a real audit trail.
@@ -27,14 +27,14 @@ export function SiteFooter() {
             </div>
             <div className="footer-col">
               <h4>More</h4>
-              <a href="https://github.com/ArielMagalsoDev/grounded-rag" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">
                 Source code
               </a>
             </div>
           </div>
         </div>
         <div className="footer-bottom">
-          <span>Meridian Assist is a fictional product concept for demonstration purposes.</span>
+          <span>Provenance is a fictional product concept for demonstration purposes.</span>
           <span>
             Built by:{" "}
             <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">

@@ -64,7 +64,7 @@ export type ModelCallError = {
   stage: "screen" | "generate" | "ground" | "embed";
 };
 
-// --- Meridian Assist ticket layer ---
+// --- Provenance ticket layer ---
 // This wraps AskResponse in business-facing (ticket/automation) framing — see
 // docs/PRODUCT-PLAN.md §11. It does NOT replace AskResponse: the pipeline's decision
 // logic (screen -> retrieve -> generate -> ground -> gate) is unchanged and still

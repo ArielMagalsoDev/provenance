@@ -4,7 +4,7 @@ Status: PLANNED, not started. Written 2026-08-07 against commit `7e0532a`.
 
 ## Context
 
-Two features requested for the Meridian Assist demo:
+Two features requested for the Provenance demo:
 
 1. **Human-in-the-Loop Agent Inbox** — an operator surface listing escalated
    (`human_review`) tickets where a human can read the evidence, edit the AI's

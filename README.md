@@ -1,9 +1,11 @@
-# grounded-rag
+# Provenance
+
+_(originally built as "grounded-rag" — renamed 2026-08-08; same underlying pipeline)_
 
 A retrieval system that answers only from its source documents and refuses — visibly,
 with the evidence shown — when those documents don't support an answer.
 
-**Live demo:** _pending deployment — see [Run locally](#run-locally) for now._
+**Live demo:** [provenance.arielmagalso.com](https://provenance.arielmagalso.com)
 
 ---
 

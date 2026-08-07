@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 export const metadata: Metadata = {
-  title: "Architecture — Meridian Assist",
+  title: "Architecture — Provenance",
   description: "How the production-shaped automation pipeline works, in plain language.",
 };
 

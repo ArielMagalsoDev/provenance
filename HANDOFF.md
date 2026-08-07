@@ -1,4 +1,4 @@
-# HANDOFF — grounded-rag / Meridian Assist
+# HANDOFF — grounded-rag / Provenance
 
 Read this first in a new session before touching anything. Written 2026-08-06 at the
 end of a long build session; **updated 2026-08-07** — see "Update: Agent Inbox + custom
@@ -7,7 +7,7 @@ knowledge upload" near the end for what changed since.
 ## What this is
 
 A RAG portfolio demo ("grounded-rag") that only answers from source documents and
-refuses when it can't — repositioned mid-session into **Meridian Assist**, a business-
+refuses when it can't — repositioned mid-session into **Provenance**, a business-
 framed "auditable support automation" product story for coworking operators, then
 skinned twice more (a custom mockup, then Meta's Quest/Ray-Ban commerce design system
 + shadcn/ui). The underlying pipeline never changed across any of that — only
@@ -16,7 +16,7 @@ presentation layers were added on top.
 Three source-of-truth docs, read in this order for depth:
 1. **This file** — current state, gotchas, what to do next.
 2. `CLAUDE.md` (repo root) — the original grounded-rag technical spec + amendments.
-3. `docs/PRODUCT-PLAN.md` — the Meridian Assist business-repositioning plan.
+3. `docs/PRODUCT-PLAN.md` — the Provenance business-repositioning plan.
 4. `C:\Users\ariel\OneDrive\Documents\Claude Code FIles\PLAN-grounded-rag.md` — the
    cross-project orchestration log (this project is one of several Ariel runs from
    that hub; that file has the full session-by-session history).
@@ -26,8 +26,8 @@ Three source-of-truth docs, read in this order for depth:
 - **Code is fully built and locally verified.** Typecheck clean, `npm run build`
   clean, all pages manually verified in-browser, full eval suite passing.
 - **Git: two commits exist on `main`**, both pushed and live at
-  **https://grounded-rag-six.vercel.app** (`ArielMagalsoDev/grounded-rag`, public):
-  the original base build, then a second commit covering the Meridian Assist ticket
+  **https://grounded-rag-six.vercel.app** (`ArielMagalsoDev/provenance`, public):
+  the original base build, then a second commit covering the Provenance ticket
   layer + all three design passes (Meta → mockup → Salix) + every fix made along the
   way. **Run `git status` before anything else** — the Agent Inbox / custom-upload
   work (below) is uncommitted on top of that.
@@ -44,8 +44,8 @@ Three source-of-truth docs, read in this order for depth:
 | What | Where |
 |---|---|
 | Code | `C:\Users\ariel\grounded-rag` (outside OneDrive on purpose — don't move it) |
-| GitHub | `ArielMagalsoDev/grounded-rag`, public, `main` branch, connected to Vercel for auto-deploy-on-push |
-| Vercel | project `ariel-m-projects/grounded-rag` → `https://grounded-rag-six.vercel.app` |
+| GitHub | `ArielMagalsoDev/provenance` (renamed 2026-08-08 from `grounded-rag`; local `origin` remote updated to match), public, `main` branch, connected to Vercel for auto-deploy-on-push |
+| Vercel | project `ariel-m-projects/grounded-rag` (Vercel project itself not renamed — no rename tool available; irrelevant to visitors now) → primary domain **`https://provenance.arielmagalso.com`** (added 2026-08-08, CNAME on Hostinger, real Cloudflare Turnstile hostname added to match); old `https://grounded-rag-six.vercel.app` alias still works too |
 | Supabase | project `grounded-rag`, ref `vtjswmwbcwfonvmxjapz`, region us-east-1, org `tuvcfqwegncujzrmboca` (Ariel's personal org). URL: `https://vtjswmwbcwfonvmxjapz.supabase.co` |
 | Secrets | `.env.local` (gitignored, already populated with real Anthropic + Supabase keys — don't ask Ariel for them again, they're already on disk) |
 | Local dev server config | `.claude/launch.json` in **the OneDrive session root**, not this repo — entry name `grounded-rag`, runs `start-dev.cmd` in this repo, port 3000 with autoPort |
@@ -67,7 +67,7 @@ Three source-of-truth docs, read in this order for depth:
 Pipeline, in order, for every question: **bot check → rate limit → cache → spend cap
 → screen → retrieve → generate → ground → route**. Lives in `lib/pipeline.ts`
 (`runAskPipeline`), shared by `/api/ask` (question/answer contract) and `/api/tickets`
-(Meridian Assist ticket contract, via `lib/tickets.ts`'s `runTicket` which wraps
+(Provenance ticket contract, via `lib/tickets.ts`'s `runTicket` which wraps
 `AskResponse` into `AutomationDecision` and writes a real, persisted `audit_events`
 row per stage — only the downstream send/escalate *action* is simulated).
 
@@ -179,7 +179,7 @@ serif headlines) was fully replaced — don't resurrect it, it's gone from
 - **Font**: Montserrat (`next/font/google` in `app/layout.tsx`) — the documented
   fallback for Meta's proprietary "Optimistic VF," which isn't licensable. No Meta
   logo/wordmark used anywhere in the app — only the abstract token system (colors,
-  spacing, radii, component shapes) applied to Meridian Assist's own content.
+  spacing, radii, component shapes) applied to Provenance's own content.
 - **Color**: cobalt `--primary: #0064e0` reserved for the one "buy-cta"/commit moment
   (Send/Escalate button in the demo). Marketing surfaces (landing page, nav) use black
   pill buttons (`variant="ink"` on shadcn `Button`, defined in
@@ -365,6 +365,47 @@ end-to-end (only `.md` had been exercised before):
   estimate, not a live count, and doesn't refresh until the next autovacuum/analyze.
   Don't trust it immediately after restoring a paused project — query directly instead.
 
+## Update: Product renamed "Meridian Assist" → "Provenance" (2026-08-08)
+
+Ariel didn't like "Meridian Assist" as the product name (it borrowed too heavily from
+"Meridian Nine," the fictional *client* company the corpus is about — confusing, since
+the product and its fictional customer shouldn't share a name). Picked "Provenance"
+instead — ties directly to the actual mechanic (every answer traces back to a source
+passage) rather than being a generic "AI assistant" name. Renamed everywhere in one
+pass:
+
+- **All 38 in-repo occurrences** of "Meridian Assist" — nav/footer brand text, every
+  page `<title>`/meta description, hero copy, code comments, doc references (this
+  file, `docs/PRODUCT-PLAN.md`, eval case notes) — replaced with "Provenance".
+  "Meridian Nine" (the unrelated fictional client) correctly left untouched throughout
+  (verified via `grep` before and after — 9 hits, unchanged).
+- **`package.json`'s `"name"` field**: `"grounded-rag"` → `"provenance"`.
+- **GitHub repo renamed**: `ArielMagalsoDev/grounded-rag` → `ArielMagalsoDev/provenance`
+  (via `gh repo rename`; GitHub auto-redirects the old URL). Local `origin` remote
+  updated to match. Footer's "Source code" link updated to the new URL.
+- **Vercel project itself was NOT renamed** — no rename tool was available (not via
+  MCP, not via dashboard automation). Stayed `ariel-m-projects/grounded-rag`
+  internally. This turned out not to matter: see custom domain below.
+- **Custom domain set up**: `provenance.arielmagalso.com`, added as a Vercel domain
+  (Production environment), CNAME added on Hostinger (`arielmagalso.com`'s existing
+  DNS — Ariel's portfolio's own host, unaffected by this addition), SSL auto-issued by
+  Vercel within a couple minutes. Once a custom domain is primary, the underlying
+  Vercel project's internal `.vercel.app` name is invisible to visitors — so not being
+  able to rename the Vercel project doesn't actually matter for branding.
+- **Cloudflare Turnstile**: Ariel added `provenance.arielmagalso.com` as an allowed
+  hostname on the existing widget (site key `0x4AAAAAAEJFxJ7d1Sx4I8VQ`) — required,
+  since real Turnstile is domain-restricted (confirmed earlier this same session) and
+  would otherwise reject submissions from the new domain with a sitekey/domain
+  mismatch, same as the `110200` error hit earlier on an unregistered preview URL.
+
+**One real slip this session**: the rename's file edits sat uncommitted locally for a
+while (got sidetracked into the domain/DNS setup mid-task) — the live site kept
+serving the old "Meridian Assist" title even after the domain was already resolving,
+until this was caught by literally curling the new domain's `<title>` tag and seeing
+the stale name. Lesson: after a rename like this, verify the *deployed* output, not
+just that the local build compiled — a clean `npm run build` proves the code is
+correct, not that it shipped.
+
 ## Outstanding decisions / next actions
 
 1. ~~Say go to commit + push the Agent Inbox / upload work~~ — done, see above; also
@@ -376,10 +417,11 @@ end-to-end (only `.md` had been exercised before):
    live 2026-08-08: production serves a real Cloudflare site key
    (`0x4AAAAAAEJFxJ7d1Sx4I8VQ`), not the published test key. See the correction under
    "Env vars" above.
-4. **Custom domain** — deferred by Ariel ("we change it later"). Two candidates
-   floated: `rag.arielmagalso.com` (matches original naming) vs
-   `assist.arielmagalso.com` (matches the Meridian Assist business repositioning).
-   Not decided.
+4. ~~Custom domain~~ — **done 2026-08-08**: `provenance.arielmagalso.com` is live
+   (CNAME added on Hostinger, points to Vercel; SSL auto-issued; real Cloudflare
+   Turnstile hostname added to match). Product renamed to "Provenance" the same
+   session (see the rename note near the top of this file), which is why this landed
+   on `provenance.` rather than the earlier `rag.`/`assist.` candidates.
 5. **`docs/PRODUCT-PLAN.md` Phases 3-5** are still unbuilt: a held-out eval set (the
    current 100%/0%/0% is a dev-set number the pipeline was iterated against directly —
    not proof it generalizes), a real external integration (webhook intake, one

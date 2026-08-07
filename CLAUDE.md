@@ -1,6 +1,9 @@
 @AGENTS.md
 
-# grounded-rag
+# Provenance
+
+_(originally built as "grounded-rag" — renamed 2026-08-08; same underlying pipeline,
+repo/package technical names updated to match)_
 
 Persistent context for Claude Code. Read this before any task in this repo.
 
@@ -15,8 +18,7 @@ refuses when the sources don't support an answer**.
 The point of the project is not the chatbot. It is the verification layer that catches
 the model when it is about to fabricate, and the evidence (evals) that it works.
 
-**Live at:** `rag.arielmagalso.com` (ships first on the Vercel-assigned URL; DNS cutover
-is a later step)
+**Live at:** [provenance.arielmagalso.com](https://provenance.arielmagalso.com)
 **Audience:** technical reviewers reading the code, and non-technical recruiters trying
 the demo for 90 seconds.
 

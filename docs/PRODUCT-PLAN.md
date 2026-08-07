@@ -1,22 +1,23 @@
-# Meridian Assist — Business Automation Product Plan (fine-tuned 2026-08-06)
+# Provenance — Business Automation Product Plan (fine-tuned 2026-08-06)
 
 Evolution of the grounded-rag portfolio demo into a business-first product story.
 This is the working plan; deltas vs the original draft are marked **[AMENDED]** with
-the reasoning inline. Repo stays `grounded-rag`; "Meridian Assist" is the product
-presentation layer on top of it.
+the reasoning inline. Repo was originally `grounded-rag`, later renamed to
+`provenance` (2026-08-08) to match; "Provenance" is the product presentation layer on
+top of the same underlying pipeline.
 
 ---
 
 ## 1. Product summary
 
-Meridian Assist is an auditable customer-support automation for coworking and
+Provenance is an auditable customer-support automation for coworking and
 flexible-office operators. It answers routine questions from approved policy documents,
 cites the evidence behind every response, blocks unsafe instructions, and sends
 uncertain or unsupported requests to a human.
 
 The portfolio story is not "a chatbot that uses RAG." It is:
 
-> Meridian Assist reduces repetitive support work without allowing AI to invent
+> Provenance reduces repetitive support work without allowing AI to invent
 > company policy.
 
 ## 2. Target business and buyer
@@ -31,7 +32,7 @@ members, ops managers.
 Unchanged from draft: repetitive policy questions consume staff time and produce
 inconsistent answers across locations; a generic chatbot adds fabrication risk exactly
 where it's most dangerous (refunds, contracts, insurance, accessibility, billing,
-access control). Meridian Assist resolves the well-supported portion automatically,
+access control). Provenance resolves the well-supported portion automatically,
 cites its evidence, and escalates the rest with an audit trail.
 
 ## 4. Product promise
@@ -201,7 +202,7 @@ Turnstile keys. Repositioning an undeployed app puts polish before existence.
 
 **Acceptance:** the current demo works at a public URL with all safeguards live.
 
-### Phase 1 — Reposition as Meridian Assist
+### Phase 1 — Reposition as Provenance
 
 As drafted (business-first landing page, guided-demo entry, corpus/evals preserved,
 no internal dev notes on public pages) minus the nonexistent "approved HTML mockup"
@@ -264,11 +265,10 @@ As drafted, with additions:
 
 As drafted (pages, portfolio statement, hiring signals). One naming decision:
 
-- **[AMENDED — decision needed]** URL. Options: keep `rag.arielmagalso.com` (already
-  planned, technical-sounding) or move to `assist.arielmagalso.com` (matches the
-  product story). Recommendation: **assist.arielmagalso.com** as primary once Phase 1
-  ships, since the whole point of the repositioning is business-first framing; keep
-  the repo named grounded-rag.
+- **[DECIDED, 2026-08-08]** URL: `provenance.arielmagalso.com`, live. Settled once the
+  product itself was renamed to "Provenance" the same session — matches directly
+  rather than needing a separate business-framing subdomain choice. GitHub repo
+  renamed to match (`ArielMagalsoDev/provenance`).
 
 ## 15. Definition of done
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { TicketWorkflow } from "../components/TicketWorkflow";
 
 export const metadata: Metadata = {
-  title: "Guided demo — Meridian Assist",
+  title: "Guided demo — Provenance",
   description: "A fictional support inbox showing automated resolution, human-review routing, and audit trail.",
 };
 

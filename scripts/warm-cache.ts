@@ -1,4 +1,4 @@
-// Pre-warms the response cache for the three Meridian Assist guided scenarios
+// Pre-warms the response cache for the three Provenance guided scenarios
 // (lib/scenarios.ts) by running them through the real pipeline once. This is what
 // makes the budget-exhausted fallback in lib/limit.ts actually work: /api/tickets and
 // /api/ask both check the cache BEFORE the spend cap, so once these are cached, the

@@ -1,6 +1,6 @@
 // The full request pipeline: bot check -> rate limit -> cache -> spend cap -> screen
 // -> retrieve -> generate -> ground. Extracted from app/api/ask/route.ts so both
-// /api/ask (question/answer contract) and /api/tickets (Meridian Assist ticket
+// /api/ask (question/answer contract) and /api/tickets (Provenance ticket
 // contract — see lib/tickets.ts) share one implementation instead of two copies of
 // the same safety-critical ordering.
 //

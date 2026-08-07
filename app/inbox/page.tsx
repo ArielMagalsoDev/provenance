@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AgentInbox } from "../components/AgentInbox";
 
 export const metadata: Metadata = {
-  title: "Agent Inbox — Meridian Assist",
+  title: "Agent Inbox — Provenance",
   description: "Review escalated tickets, edit the proposed response, and teach the assistant a correction.",
 };
 
