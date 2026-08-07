@@ -18,23 +18,39 @@ type Section = { heading: string | null; paragraphs: string[] };
 type Unit = { heading: string | null; text: string };
 export type Chunk = { content: string; heading: string | null };
 
-/** Splits a markdown file's body into sections by "## " headings. */
+/**
+ * Splits a document's body into sections by "## " headings.
+ *
+ * Written for markdown (the corpus's format: blank-line-separated paragraphs,
+ * "## " section headings), but also has to handle uploaded .txt/.pdf content
+ * that has neither — PDF text extraction in particular produces one line per
+ * detected text row with no blank lines between paragraphs and no "#"/"##"
+ * markers at all (verified against real unpdf output). `current` used to
+ * start out `null` and only get initialized on the first "## " heading, so a
+ * document with no headings never initialized it — every line accumulated in
+ * `buffer`, and the final flushParagraph() had nowhere to push it
+ * (`if (text && current)` silently dropped it), leaving `sections` empty and
+ * the whole upload rejected as "no extractable text" even though extraction
+ * had fully succeeded. `current` now always exists, seeded as an implicit
+ * no-heading section, so content is never dropped regardless of whether the
+ * document has any heading structure.
+ */
 export function splitIntoSections(markdown: string): Section[] {
   const lines = markdown.split("\n");
   const sections: Section[] = [];
-  let current: Section | null = null;
+  let current: Section = { heading: null, paragraphs: [] };
   let buffer: string[] = [];
 
   const flushParagraph = () => {
     const text = buffer.join("\n").trim();
-    if (text && current) current.paragraphs.push(text);
+    if (text) current.paragraphs.push(text);
     buffer = [];
   };
 
   for (const line of lines) {
     if (line.startsWith("## ")) {
       flushParagraph();
-      if (current) sections.push(current);
+      sections.push(current);
       current = { heading: line.slice(3).trim(), paragraphs: [] };
     } else if (line.startsWith("# ")) {
       // Document title — not a passage heading, and not part of any section's content.
@@ -46,19 +62,12 @@ export function splitIntoSections(markdown: string): Section[] {
     }
   }
   flushParagraph();
-  if (current) sections.push(current);
+  sections.push(current);
 
-  // Unlike the corpus (which always opens with a heading before any body
-  // text — see corpus/COVERAGE.md), an uploaded document may start writing
-  // before its first "## " heading, or have no headings at all. Without this
-  // fallback that leading text is silently dropped (buffer flushed into a
-  // `current` that's still null). Give it a null-heading section instead.
-  if (buffer.length > 0 || sections.length === 0) {
-    const leading = buffer.join("\n").trim();
-    if (leading) sections.unshift({ heading: null, paragraphs: [leading] });
-  }
-
-  return sections;
+  // Drop any section (including the leading implicit one) that ended up
+  // empty — e.g. a document that opens directly with a "## " heading leaves
+  // the implicit leading section with zero paragraphs.
+  return sections.filter((s) => s.paragraphs.length > 0);
 }
 
 /** Splits an oversized paragraph on sentence boundaries so no unit exceeds MAX_CHUNK_TOKENS. */
