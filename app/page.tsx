@@ -5,6 +5,8 @@ import { GUIDED_SCENARIOS } from "@/lib/scenarios";
 import { BusinessImpactCalculator } from "./components/BusinessImpactCalculator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Reveal } from "./components/Reveal";
+import { CountUp } from "./components/CountUp";
 
 export const metadata: Metadata = {
   title: "Provenance | AI Automation Case Study by Ariel Magalso",
@@ -122,6 +124,7 @@ function FlowArrow() {
 
 function SectionHeader({ label, heading, subtitle }: { label: string; heading: string; subtitle: string }) {
   return (
+    <Reveal>
     <div style={{ textAlign: "center", maxWidth: "620px", margin: "0 auto 40px" }}>
       <span className="section-label">
         <i className="dot" aria-hidden="true" />
@@ -134,6 +137,7 @@ function SectionHeader({ label, heading, subtitle }: { label: string; heading: s
         {subtitle}
       </p>
     </div>
+    </Reveal>
   );
 }
 
@@ -141,7 +145,8 @@ export default function Home() {
   return (
     <main>
       {/* Hero */}
-      <header className="shell" style={{ paddingTop: "72px", paddingBottom: "8px", textAlign: "center" }}>
+      <header className="shell" style={{ paddingTop: "clamp(72px, 9vw, 120px)", paddingBottom: "8px", textAlign: "center" }}>
+        <Reveal>
         <span className="section-label" style={{ margin: "0 auto" }}>
           <i className="dot" aria-hidden="true" />
           Auditable support automation for flexible workspaces
@@ -181,11 +186,13 @@ export default function Home() {
         <p className="text-caption" style={{ color: "var(--stone)", marginTop: "16px" }}>
           No signup. No login. Live pipeline, not scripted.
         </p>
+        </Reveal>
       </header>
 
       {/* App-frame preview */}
       <section style={{ paddingTop: 0, paddingBottom: "40px" }}>
         <div className="shell">
+          <Reveal delay={0.1}>
           <Link
             href="/demo"
             aria-label="Open the guided demo"
@@ -237,22 +244,27 @@ export default function Home() {
               </div>
             </div>
           </Link>
+          </Reveal>
         </div>
       </section>
 
       {/* Stat strip, replaces "trusted by" logos — nothing here is a customer claim */}
       <section style={{ paddingTop: 0, paddingBottom: "24px" }}>
-        <div className="shell" style={{ display: "flex", justifyContent: "center", gap: "48px", flexWrap: "wrap", textAlign: "center" }}>
-          {[
-            { v: "52", l: "indexed passages" },
-            { v: "45", l: "development eval cases" },
-            { v: "3", l: "responsible outcomes" },
-          ].map((s) => (
-            <div key={s.l}>
-              <div className="text-heading-md">{s.v}</div>
-              <div className="text-caption" style={{ color: "var(--stone)" }}>{s.l}</div>
-            </div>
-          ))}
+        <div className="shell">
+          <Reveal>
+          <div style={{ display: "flex", justifyContent: "center", gap: "48px", flexWrap: "wrap", textAlign: "center" }}>
+            {[
+              { v: 52, l: "indexed passages" },
+              { v: 45, l: "development eval cases" },
+              { v: 3, l: "responsible outcomes" },
+            ].map((s) => (
+              <div key={s.l}>
+                <div className="text-heading-md"><CountUp value={s.v} /></div>
+                <div className="text-caption" style={{ color: "var(--stone)" }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -263,6 +275,7 @@ export default function Home() {
             heading="What I built — and why it matters."
             subtitle="I built Provenance to demonstrate how an AI support workflow can automate routine questions without hiding evidence, uncertainty, or human oversight."
           />
+          <Reveal delay={0.1}>
           <div className="grid-4">
             {PROJECT_SUMMARY.map((item, index) => (
               <article className="case-study-card" key={item.title}>
@@ -272,6 +285,7 @@ export default function Home() {
               </article>
             ))}
           </div>
+          </Reveal>
         </div>
       </section>
 
@@ -283,6 +297,7 @@ export default function Home() {
             heading="One inbox. Three responsible outcomes."
             subtitle="Open the guided inbox to see how the same workflow can answer, escalate, or block based on the evidence available — live, not scripted."
           />
+          <Reveal delay={0.1}>
           <div className="grid-3">
             {GUIDED_SCENARIOS.map((s, i) => (
               <Link key={s.id} href="/demo" className="radio-option" style={{ display: "block" }}>
@@ -295,6 +310,7 @@ export default function Home() {
               </Link>
             ))}
           </div>
+          </Reveal>
         </div>
       </section>
 
@@ -306,6 +322,7 @@ export default function Home() {
             heading="From policy update to accountable action."
             subtitle="The system automates the safe portion of support work and preserves human review where business judgment is required."
           />
+          <Reveal delay={0.1}>
           <div className="flow-row">
             {WORKFLOW.slice(0, 4).map((w, i) => (
               <Fragment key={w.n}>
@@ -343,20 +360,25 @@ export default function Home() {
               );
             })}
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Promises */}
       <section>
-        <div className="shell grid-4">
-          {PROMISES.map((p) => (
-            <div className="card-icon-feature" key={p.title}>
-              <div className="text-subtitle-lg">{p.title}</div>
-              <p className="text-body-sm" style={{ color: "var(--steel)", marginTop: "8px" }}>
-                {p.note}
-              </p>
-            </div>
-          ))}
+        <div className="shell">
+          <div className="grid-4">
+            {PROMISES.map((p, i) => (
+              <Reveal delay={i * 0.08} key={p.title}>
+                <div className="card-icon-feature" style={{ height: "100%" }}>
+                  <div className="text-subtitle-lg">{p.title}</div>
+                  <p className="text-body-sm" style={{ color: "var(--steel)", marginTop: "8px" }}>
+                    {p.note}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -367,6 +389,7 @@ export default function Home() {
             heading="The system behind the interface."
             subtitle="Each technology has a defined job across product delivery, retrieval, verification, operational handoff, and quality control."
           />
+          <Reveal delay={0.1}>
           <div className="stack-grid">
             {STACK.map((item) => (
               <article className="stack-row" key={item.area}>
@@ -378,6 +401,7 @@ export default function Home() {
           <p className="text-caption stack-note">
             Uploaded knowledge is isolated to an anonymous browser workspace and expires after 30 minutes. Service-role credentials remain server-only.
           </p>
+          </Reveal>
         </div>
       </section>
 
@@ -389,7 +413,9 @@ export default function Home() {
             heading="Measure time saved without hiding the tradeoffs."
             subtitle="Adjust the assumptions for your own operation. These are not measured customer results — this demonstrates the calculation."
           />
-          <BusinessImpactCalculator />
+          <Reveal delay={0.1}>
+            <BusinessImpactCalculator />
+          </Reveal>
         </div>
       </section>
 
@@ -401,24 +427,27 @@ export default function Home() {
             heading="A scorecard, published as-is."
             subtitle="45 development-set cases test routine answers, unsupported questions, adversarial prompts, and workspace knowledge against the same pipeline the demo runs."
           />
+          <Reveal delay={0.1}>
           <div className="grid-4">
             <div className="stat-tile stat-tile-blue">
-              <span className="stat-value">45/45</span>
+              <span className="stat-value"><CountUp value={45} suffix="/45" /></span>
               <span className="stat-label">Development-set cases passing</span>
             </div>
             <div className="stat-tile stat-tile-dark">
-              <span className="stat-value">0%</span>
+              <span className="stat-value"><CountUp value={0} suffix="%" /></span>
               <span className="stat-label">False refusal rate</span>
             </div>
             <div className="stat-tile stat-tile-pink">
-              <span className="stat-value">0%</span>
+              <span className="stat-value"><CountUp value={0} suffix="%" /></span>
               <span className="stat-label">Fabrication rate</span>
             </div>
             <div className="stat-tile stat-tile-white">
-              <span className="stat-value">3</span>
+              <span className="stat-value"><CountUp value={3} /></span>
               <span className="stat-label" style={{ color: "var(--steel)" }}>Test buckets: answerable, unanswerable, adversarial</span>
             </div>
           </div>
+          </Reveal>
+          <Reveal delay={0.15}>
           <div className="grid-split" style={{ marginTop: "16px" }}>
             <div className="card-feature">
               <table className="specs-table">
@@ -481,11 +510,13 @@ export default function Home() {
               </ul>
             </div>
           </div>
+          </Reveal>
         </div>
       </section>
 
       <section id="decisions" style={{ background: "var(--surface-soft)" }}>
         <div className="shell decision-layout">
+          <Reveal>
           <div className="decision-intro">
             <span className="section-label"><i className="dot" aria-hidden="true" />Engineering decisions</span>
             <h2 className="text-heading-lg" style={{ marginTop: "18px" }}>The hard part is deciding when the system should act.</h2>
@@ -494,6 +525,8 @@ export default function Home() {
             </p>
             <Link href="/architecture" className="text-body-sm-bold inline-link">Read the architecture walkthrough →</Link>
           </div>
+          </Reveal>
+          <Reveal delay={0.1}>
           <div>
             {ENGINEERING_DECISIONS.map((item, index) => (
               <details className="accordion-item" key={item.title} open={index === 0}>
@@ -505,12 +538,14 @@ export default function Home() {
               </details>
             ))}
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* What was built — dark mega-card */}
       <section>
         <div className="shell">
+          <Reveal>
           <div className="card-promo">
             <div style={{ textAlign: "center", maxWidth: "580px", margin: "0 auto 36px" }}>
               <span className="section-label" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}>
@@ -559,11 +594,13 @@ export default function Home() {
               </Link>
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       <section>
-        <div className="shell learning-panel">
+        <Reveal className="shell">
+        <div className="learning-panel">
           <div>
             <span className="section-label"><i className="dot" aria-hidden="true" />What I learned</span>
             <h2 className="text-heading-lg" style={{ marginTop: "18px" }}>
@@ -584,10 +621,12 @@ export default function Home() {
             </p>
           </div>
         </div>
+        </Reveal>
       </section>
 
       <section id="contact">
-        <div className="shell recruiter-cta">
+        <Reveal className="shell">
+        <div className="recruiter-cta">
           <div>
             <span className="section-label recruiter-label"><i className="dot" aria-hidden="true" />The builder behind Provenance</span>
             <h2 className="text-heading-lg" style={{ color: "#fff", marginTop: "18px" }}>Interested in the person behind the product?</h2>
@@ -611,6 +650,7 @@ export default function Home() {
             <Link href="/demo" className="text-body-sm-bold recruiter-demo-link">Replay the demo →</Link>
           </div>
         </div>
+        </Reveal>
       </section>
     </main>
   );

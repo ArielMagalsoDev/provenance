@@ -130,10 +130,11 @@ export function TicketWorkflow() {
   return (
     <section style={{ paddingTop: "48px" }}>
       <div className="shell">
-        <p className="text-caption-bold" style={{ color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+        <span className="section-label" style={{ marginBottom: "14px" }}>
+          <i className="dot" aria-hidden="true" />
           Guided demo
-        </p>
-        <h1 className="text-heading-lg">Support inbox</h1>
+        </span>
+        <h1 className="text-display-lg">Support inbox</h1>
         <p className="text-body-md" style={{ color: "var(--steel)", marginTop: "10px", maxWidth: "640px" }}>
           Fictional support inbox for Meridian Nine. Choose a ticket, or write your own — the pipeline below runs
           live; only the send/escalate action is simulated.

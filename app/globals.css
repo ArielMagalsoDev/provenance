@@ -473,7 +473,32 @@ nav { min-height: 60px; display: flex; align-items: center; justify-content: spa
 .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .grid-split { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
 
-section { padding: var(--s-section) 0; }
+/* Salix section rhythm — 110–120px of vertical air per section on desktop
+   (measured off salix.framer.website: hero 160/110, sections 110–120),
+   tapering fluidly down to the old 48px scale on phones. */
+section { padding: clamp(48px, 8vw, 104px) 0; }
+
+/* Scroll-entrance animation — fade + 26px rise, staggered per block via
+   --reveal-delay (set inline by the Reveal component). Only ever runs when
+   motion is allowed; otherwise content renders in place, fully visible. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0s);
+  }
+  .reveal.is-visible { opacity: 1; transform: none; }
+
+  .btn, .btn-glow-wrap::before, .pill-tab, .accordion-item .chevron { transition: all 0.25s ease; }
+  .btn-primary:hover, .btn-buy:hover { transform: translateY(-1px) scale(1.02); }
+  .btn-secondary:hover, .btn-ghost:hover { background: var(--surface-soft); }
+  .btn-glow-wrap:hover::before { opacity: 0.85; filter: blur(20px); }
+  .card-feature, .card-icon-feature, .radio-option, .case-study-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+  a.radio-option:hover, a.case-study-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(24, 24, 24, 0.08); }
+}
 @media (max-width: 1000px) {
   .ticket-grid { grid-template-columns: 1fr !important; }
   .ticket-grid > article { border-right: none !important; border-bottom: 1px solid var(--hairline); }
