@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Provenance",
-  description: "Resolve routine support questions without inventing company policy.",
+  title: "Provenance | AI Automation Case Study by Ariel Magalso",
+  description: "An auditable AI support automation case study designed and built by Ariel Magalso, with cited answers, claim verification, human review, and a live evaluation suite.",
 };
 
 const PROMISES = [
@@ -26,6 +26,29 @@ const WORKFLOW = [
   { n: "05", title: "Claims verified", note: "Every statement must be supported." },
   { n: "06", title: "Reply or route", note: "Send safely, post to Slack, or involve staff." },
   { n: "07", title: "Decision logged", note: "Evidence and outcome stay auditable." },
+];
+
+const PROJECT_SUMMARY = [
+  { title: "My role", note: "I designed the product, defined the system architecture, built the interface and backend workflow, created the evaluation suite, and deployed the live application." },
+  { title: "The challenge", note: "Support automation becomes risky when generated answers cannot be traced to approved policy or unsupported questions are answered confidently." },
+  { title: "The solution", note: "Provenance retrieves approved evidence, generates a cited response, verifies its claims, and chooses whether to answer, escalate, or block." },
+  { title: "The result", note: "A working prototype with 52 indexed passages, 45 development evaluation cases, three responsible outcomes, audit logging, and live Slack handoff." },
+];
+
+const STACK = [
+  { area: "Product interface", tech: "Next.js 16, React 19, TypeScript, Tailwind CSS" },
+  { area: "Data and retrieval", tech: "Supabase Postgres, pgvector, gte-small embeddings" },
+  { area: "AI workflow", tech: "Claude Haiku, retrieval, claim decomposition, entailment checks" },
+  { area: "Operations", tech: "Slack approvals, persisted audit events, human-review inbox" },
+  { area: "Safety and cost", tech: "Cloudflare Turnstile, rate limits, response cache, spend cap" },
+  { area: "Delivery", tech: "45-case evaluation harness, Vercel deployment" },
+];
+
+const ENGINEERING_DECISIONS = [
+  { title: "Screen before spending", answer: "Rate limiting, cache lookup, spend controls, and prompt-injection screening happen before retrieval and generation. Unsafe or over-limit requests do not consume the full model pipeline." },
+  { title: "Derive citations from verified support", answer: "The interface does not trust the generator's self-reported citation list. Citations are derived from the supporting passage IDs produced by claim-level verification." },
+  { title: "Escalate uncertainty instead of guessing", answer: "The system requires both a mean groundedness threshold and a minimum score for every material claim. Insufficient evidence routes the ticket to a person or refuses it rather than sending a plausible answer." },
+  { title: "Treat a clean scorecard honestly", answer: "The 45 cases are a development set used while improving the system. They caught real fabrication failures, but passing them is not held-out proof; the next step is an unseen test set and threshold calibration against it." },
 ];
 
 const TEASER_ICON_PROPS = { width: 32, height: 32, viewBox: "0 0 24 24", fill: "none", "aria-hidden": true } as const;
@@ -130,6 +153,21 @@ export default function Home() {
           Provenance reads approved documents, drafts a cited answer, and knows when to involve your operations
           team — visibly, with the reasoning shown at every step.
         </p>
+        <div className="creator-note">
+          <p className="text-body-sm-bold">
+            Designed and built by{" "}
+            <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Ariel Magalso ↗</a>
+          </p>
+          <p className="text-body-sm" style={{ color: "var(--steel)", marginTop: "4px" }}>
+            Independent AI automation case study — from document ingestion and retrieval to claim verification,
+            human review, Slack handoff, and evaluation.
+          </p>
+          <div className="creator-meta" aria-label="Project details">
+            <span><strong>Role</strong> Product design + full-stack development</span>
+            <span><strong>Type</strong> Independent portfolio project</span>
+            <span><strong>Status</strong> Live prototype</span>
+          </div>
+        </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "14px", marginTop: "32px", justifyContent: "center" }}>
           <span className="btn-glow-wrap">
             <Button asChild variant="ink">
@@ -207,7 +245,7 @@ export default function Home() {
         <div className="shell" style={{ display: "flex", justifyContent: "center", gap: "48px", flexWrap: "wrap", textAlign: "center" }}>
           {[
             { v: "52", l: "indexed passages" },
-            { v: "43", l: "eval cases" },
+            { v: "45", l: "development eval cases" },
             { v: "3", l: "responsible outcomes" },
           ].map((s) => (
             <div key={s.l}>
@@ -215,6 +253,25 @@ export default function Home() {
               <div className="text-caption" style={{ color: "var(--stone)" }}>{s.l}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section id="case-study" className="case-study-section">
+        <div className="shell">
+          <SectionHeader
+            label="The case study"
+            heading="What I built — and why it matters."
+            subtitle="I built Provenance to demonstrate how an AI support workflow can automate routine questions without hiding evidence, uncertainty, or human oversight."
+          />
+          <div className="grid-4">
+            {PROJECT_SUMMARY.map((item, index) => (
+              <article className="case-study-card" key={item.title}>
+                <span className="case-study-index">0{index + 1}</span>
+                <h3 className="text-subtitle-lg">{item.title}</h3>
+                <p className="text-body-sm" style={{ color: "var(--steel)", marginTop: "8px" }}>{item.note}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -303,6 +360,27 @@ export default function Home() {
         </div>
       </section>
 
+      <section style={{ paddingTop: 0 }}>
+        <div className="shell">
+          <SectionHeader
+            label="Built with"
+            heading="The system behind the interface."
+            subtitle="Each technology has a defined job across product delivery, retrieval, verification, operational handoff, and quality control."
+          />
+          <div className="stack-grid">
+            {STACK.map((item) => (
+              <article className="stack-row" key={item.area}>
+                <span className="text-caption-bold" style={{ color: "var(--primary-deep)" }}>{item.area}</span>
+                <p className="text-body-sm" style={{ color: "var(--charcoal)" }}>{item.tech}</p>
+              </article>
+            ))}
+          </div>
+          <p className="text-caption stack-note">
+            Uploaded knowledge is isolated to an anonymous browser workspace and expires after 30 minutes. Service-role credentials remain server-only.
+          </p>
+        </div>
+      </section>
+
       {/* Business impact calculator */}
       <section style={{ paddingTop: 0 }}>
         <div className="shell">
@@ -321,12 +399,12 @@ export default function Home() {
           <SectionHeader
             label="Reliability evidence"
             heading="A scorecard, published as-is."
-            subtitle="43 evaluation cases test routine answers, unsupported questions, and adversarial prompts against the same pipeline the demo runs."
+            subtitle="45 development-set cases test routine answers, unsupported questions, adversarial prompts, and workspace knowledge against the same pipeline the demo runs."
           />
           <div className="grid-4">
             <div className="stat-tile stat-tile-blue">
-              <span className="stat-value">100%</span>
-              <span className="stat-label">Accuracy across 43 cases</span>
+              <span className="stat-value">45/45</span>
+              <span className="stat-label">Development-set cases passing</span>
             </div>
             <div className="stat-tile stat-tile-dark">
               <span className="stat-value">0%</span>
@@ -355,13 +433,13 @@ export default function Home() {
                 <tbody>
                   <tr>
                     <td>Answerable</td>
-                    <td>21</td>
+                    <td>22</td>
                     <td>100.0%</td>
                     <td>0.0%</td>
                   </tr>
                   <tr>
                     <td>Unanswerable</td>
-                    <td>13</td>
+                    <td>14</td>
                     <td>100.0%</td>
                     <td>0.0%</td>
                   </tr>
@@ -373,7 +451,7 @@ export default function Home() {
                   </tr>
                   <tr>
                     <td>Overall</td>
-                    <td>43</td>
+                    <td>45</td>
                     <td>100.0%</td>
                     <td>0.0%</td>
                   </tr>
@@ -391,7 +469,7 @@ export default function Home() {
                   A clean scorecard is a dev-set number, not held-out proof.
                 </h3>
                 <p className="text-body-sm" style={{ color: "var(--charcoal)", marginTop: "10px" }}>
-                  This 43-case set was iterated against directly — two real fabrication bugs were found and fixed
+                  This 45-case set was iterated against directly — two real fabrication bugs were found and fixed
                   during development. A perfect score on the set used to find and fix those bugs isn&apos;t evidence
                   the fix generalizes.
                 </p>
@@ -402,6 +480,30 @@ export default function Home() {
                 <li className="text-caption" style={{ color: "var(--charcoal)" }}>Until then: treat auto-send as demo-grade, not production-grade</li>
               </ul>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="decisions" style={{ background: "var(--surface-soft)" }}>
+        <div className="shell decision-layout">
+          <div className="decision-intro">
+            <span className="section-label"><i className="dot" aria-hidden="true" />Engineering decisions</span>
+            <h2 className="text-heading-lg" style={{ marginTop: "18px" }}>The hard part is deciding when the system should act.</h2>
+            <p className="text-body-md" style={{ color: "var(--steel)", marginTop: "14px" }}>
+              The implementation is designed around evidence, failure modes, and accountable handoff — not just answer generation.
+            </p>
+            <Link href="/architecture" className="text-body-sm-bold inline-link">Read the architecture walkthrough →</Link>
+          </div>
+          <div>
+            {ENGINEERING_DECISIONS.map((item, index) => (
+              <details className="accordion-item" key={item.title} open={index === 0}>
+                <summary>
+                  <span className="text-body-md-bold">{item.title}</span>
+                  <span className="chevron" aria-hidden="true">⌄</span>
+                </summary>
+                <p className="answer">{item.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
@@ -460,20 +562,53 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA */}
       <section>
-        <div className="shell" style={{ textAlign: "center" }}>
-          <h2 className="text-heading-lg">Ready to see a refusal happen live?</h2>
-          <p className="text-body-md" style={{ color: "var(--steel)", marginTop: "12px", maxWidth: "480px", margin: "12px auto 0" }}>
-            This prototype shows how policy-heavy businesses can reduce repetitive work while keeping evidence,
-            oversight, and failure modes visible.
-          </p>
-          <div style={{ marginTop: "28px" }}>
-            <span className="btn-glow-wrap">
-              <Button asChild variant="ink">
-                <Link href="/demo">Replay the demo</Link>
-              </Button>
-            </span>
+        <div className="shell learning-panel">
+          <div>
+            <span className="section-label"><i className="dot" aria-hidden="true" />What I learned</span>
+            <h2 className="text-heading-lg" style={{ marginTop: "18px" }}>
+              Producing an answer is easy. Earning permission to act is harder.
+            </h2>
+          </div>
+          <div>
+            <p className="text-body-md" style={{ color: "var(--charcoal)" }}>
+              Building Provenance changed how I think about AI automation: retrieval quality does not guarantee a grounded answer, and a refusal or escalation can be the most responsible successful outcome.
+            </p>
+            <ul className="learning-list">
+              <li>Test business risk and near-misses, not only typical questions.</li>
+              <li>Verify individual claims instead of trusting an overall confident response.</li>
+              <li>Publish limitations so operators understand where human judgment remains essential.</li>
+            </ul>
+            <p className="text-body-sm learning-next">
+              <strong>Next:</strong> build a held-out evaluation set and calibrate routing thresholds using cases the system has never been tuned against.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div className="shell recruiter-cta">
+          <div>
+            <span className="section-label recruiter-label"><i className="dot" aria-hidden="true" />The builder behind Provenance</span>
+            <h2 className="text-heading-lg" style={{ color: "#fff", marginTop: "18px" }}>Interested in the person behind the product?</h2>
+            <p className="text-body-md" style={{ color: "rgba(255,255,255,0.7)", marginTop: "12px", maxWidth: "650px" }}>
+              I&apos;m Ariel Magalso, a web developer and AI automation specialist building reliable workflows that connect AI models, business data, and human operations.
+            </p>
+          </div>
+          <div className="recruiter-actions">
+            <Button asChild variant="secondary">
+              <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">View Ariel&apos;s portfolio ↗</a>
+            </Button>
+            <Button asChild variant="ink-outline" className="recruiter-outline">
+              <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">Source code ↗</a>
+            </Button>
+            <Button asChild variant="ink-outline" className="recruiter-outline">
+              <a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+            </Button>
+            <Button asChild variant="ink-outline" className="recruiter-outline">
+              <a href="mailto:hello@arielmagalso.com">Contact Ariel</a>
+            </Button>
+            <Link href="/demo" className="text-body-sm-bold recruiter-demo-link">Replay the demo →</Link>
           </div>
         </div>
       </section>

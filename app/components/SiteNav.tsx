@@ -25,6 +25,9 @@ export function SiteNav() {
               <Link href="/corpus" className="pill-tab" style={{ border: "none" }}>
                 Corpus
               </Link>
+              <Link href="/#case-study" className="pill-tab" style={{ border: "none" }}>
+                Case study
+              </Link>
               <InboxNavLink />
             </div>
             <div className="nav-links">
