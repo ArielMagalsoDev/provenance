@@ -27,8 +27,12 @@ export function SiteFooter() {
             </div>
             <div className="footer-col">
               <h4>More</h4>
+              <Link href="/#case-study">Case study</Link>
               <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">
                 Source code
+              </a>
+              <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">
+                Ariel&apos;s portfolio
               </a>
             </div>
           </div>
@@ -36,7 +40,7 @@ export function SiteFooter() {
         <div className="footer-bottom">
           <span>Provenance is a fictional product concept for demonstration purposes.</span>
           <span>
-            Built by:{" "}
+            A project designed and built by{" "}
             <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">
               Ariel Magalso
             </a>
