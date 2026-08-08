@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, basename } from "node:path";
 import type { Metadata } from "next";
 import { renderMarkdownLite } from "../components/markdownLite";
+import { Reveal } from "../components/Reveal";
 
 export const metadata: Metadata = {
   title: "Corpus — Provenance",
@@ -19,21 +20,24 @@ export default function CorpusPage() {
 
   return (
     <main>
-      <header className="shell" style={{ paddingTop: "56px", paddingBottom: "32px" }}>
+      <header className="shell" style={{ paddingTop: "clamp(64px, 8vw, 110px)", paddingBottom: "32px", textAlign: "center" }}>
+        <Reveal>
         <span className="section-label">
           <i className="dot" aria-hidden="true" />
           Source material
         </span>
         <h1 className="text-display-lg" style={{ marginTop: "16px" }}>Corpus</h1>
-        <p className="text-subtitle-md" style={{ maxWidth: "680px", color: "var(--charcoal)", marginTop: "16px" }}>
+        <p className="text-subtitle-md" style={{ maxWidth: "680px", color: "var(--charcoal)", marginTop: "16px", marginInline: "auto" }}>
           The complete, unedited source material for Meridian Nine, the fictional coworking space this demo
           answers questions about. Every response is generated only from these documents — read them to check
           whether a refusal was actually correct.
         </p>
+        </Reveal>
       </header>
 
       <section style={{ paddingTop: 0 }}>
-        <div className="shell" style={{ maxWidth: "760px", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "48px" }}>
+        <Reveal delay={0.1} className="shell">
+        <div style={{ maxWidth: "760px", marginInline: "auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "48px" }}>
           {files.map((file) => {
             const content = readFileSync(join(corpusDir, file), "utf-8");
             return (
@@ -46,6 +50,7 @@ export default function CorpusPage() {
             );
           })}
         </div>
+        </Reveal>
       </section>
     </main>
   );

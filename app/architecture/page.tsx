@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Reveal } from "../components/Reveal";
 
 export const metadata: Metadata = {
   title: "Architecture — Provenance",
@@ -69,23 +70,26 @@ const STAGES = [
 export default function ArchitecturePage() {
   return (
     <main>
-      <header className="shell" style={{ paddingTop: "56px", paddingBottom: "32px" }}>
+      <header className="shell" style={{ paddingTop: "clamp(64px, 8vw, 110px)", paddingBottom: "32px", textAlign: "center" }}>
+        <Reveal>
         <span className="section-label">
           <i className="dot" aria-hidden="true" />
           System design
         </span>
         <h1 className="text-display-lg" style={{ marginTop: "16px" }}>Architecture</h1>
-        <p className="text-subtitle-md" style={{ maxWidth: "680px", color: "var(--charcoal)", marginTop: "16px" }}>
+        <p className="text-subtitle-md" style={{ maxWidth: "680px", color: "var(--charcoal)", marginTop: "16px", marginInline: "auto" }}>
           A ticket enters, and one of three things happens: it gets an approved automatic response, it gets routed
           to a human with the evidence attached, or it gets blocked outright. Every stage below runs for every
           ticket, in this order, and every stage&apos;s outcome is shown live in{" "}
           <Link href="/demo" style={{ textDecoration: "underline" }}>the guided demo</Link> — nothing in the UI is
           reconstructed after the fact.
         </p>
+        </Reveal>
       </header>
 
       <section style={{ paddingTop: 0 }}>
-        <div className="shell" style={{ maxWidth: "760px" }}>
+        <Reveal delay={0.1} className="shell">
+        <div style={{ maxWidth: "760px", marginInline: "auto" }}>
           <Accordion type="single" defaultValue="stage-0" collapsible>
             {STAGES.map((s, i) => (
               <AccordionItem value={`stage-${i}`} key={s.title} className="!border-b-0 mb-3 rounded-xl border border-[var(--hairline-soft)] px-5">
@@ -104,6 +108,7 @@ export default function ArchitecturePage() {
             ))}
           </Accordion>
         </div>
+        </Reveal>
       </section>
     </main>
   );
