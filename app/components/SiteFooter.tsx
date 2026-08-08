@@ -11,29 +11,30 @@ export function SiteFooter() {
               <span>Provenance</span>
             </div>
             <p className="text-body-sm" style={{ color: "var(--steel)", maxWidth: "260px" }}>
-              A fictional support-automation concept — cited answers, human review, and a real audit trail.
+              An independent AI automation case study — cited answers, human review, and a real audit trail.
             </p>
           </div>
           <div className="footer-cols">
             <div className="footer-col">
+              <h4>Case study</h4>
+              <Link href="/#overview">Overview</Link>
+              <Link href="/#engineering">Engineering</Link>
+              <Link href="/#evidence">Evidence</Link>
+            </div>
+            <div className="footer-col">
               <h4>Product</h4>
               <Link href="/demo">Guided demo</Link>
-              <Link href="/architecture">Architecture</Link>
-            </div>
-            <div className="footer-col">
-              <h4>Evidence</h4>
+              <Link href="/inbox">Inbox</Link>
               <Link href="/corpus">Policy corpus</Link>
-              <Link href="/evals">Eval scorecard</Link>
             </div>
             <div className="footer-col">
-              <h4>More</h4>
-              <Link href="/#case-study">Case study</Link>
+              <h4>Ariel</h4>
+              <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio ↗</a>
               <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">
-                Source code
+                GitHub ↗
               </a>
-              <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">
-                Ariel&apos;s portfolio
-              </a>
+              <a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+              <a href="mailto:hello@arielmagalso.com">Contact ↗</a>
             </div>
           </div>
         </div>

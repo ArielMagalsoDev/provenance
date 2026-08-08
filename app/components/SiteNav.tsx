@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { InboxNavLink } from "./InboxNavLink";
 
 export function SiteNav() {
   return (
     <>
       <div className="promo-banner">
-        Fictional workspace. Real automation pattern. No customer data is used. <Link href="/demo">Run the demo →</Link>
+        Independent portfolio project. Fictional workspace. No customer data. <Link href="/demo">Run the live demo →</Link>
       </div>
       <div className="nav-wrap">
         <div className="shell">
@@ -16,19 +15,12 @@ export function SiteNav() {
               <span>Provenance</span>
             </Link>
             <div className="nav-pills">
-              <Link href="/architecture" className="pill-tab" style={{ border: "none" }}>
-                How it works
-              </Link>
-              <Link href="/evals" className="pill-tab" style={{ border: "none" }}>
-                Reliability
-              </Link>
-              <Link href="/corpus" className="pill-tab" style={{ border: "none" }}>
-                Corpus
-              </Link>
-              <Link href="/#case-study" className="pill-tab" style={{ border: "none" }}>
-                Case study
-              </Link>
-              <InboxNavLink />
+              <Link href="/#overview" className="pill-tab" style={{ border: "none" }}>Overview</Link>
+              <Link href="/#demo" className="pill-tab" style={{ border: "none" }}>Demo</Link>
+              <Link href="/#engineering" className="pill-tab" style={{ border: "none" }}>Engineering</Link>
+              <Link href="/#evidence" className="pill-tab" style={{ border: "none" }}>Evidence</Link>
+              <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer" className="pill-tab" style={{ border: "none" }}>Source ↗</a>
+              <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer" className="pill-tab" style={{ border: "none" }}>Ariel Magalso ↗</a>
             </div>
             <div className="nav-links">
               <Button asChild variant="ink" className="!px-[20px] !py-[9px] !text-[13px]">
