@@ -1,56 +1,68 @@
-// Server component: reads /corpus/*.md directly off disk (bundled with the deploy) so
-// a reviewer can verify a refusal was correct by reading the real source docs — not
-// just trusting the model.
 import { readFileSync, readdirSync } from "node:fs";
-import { join, basename } from "node:path";
+import { basename, join } from "node:path";
 import type { Metadata } from "next";
-import { renderMarkdownLite } from "../components/markdownLite";
+import Link from "next/link";
+import { EditorialHeader, RouteIndex } from "../components/Editorial";
 import { Reveal } from "../components/Reveal";
+import { renderMarkdownLite } from "../components/markdownLite";
 
 export const metadata: Metadata = {
-  title: "Corpus — Provenance",
-  description: "The full fictional policy corpus behind the Provenance demo.",
+  title: "Policy corpus",
+  description: "The complete fictional policy source material behind every Provenance answer and refusal.",
 };
+
+function describeDocument(content: string, fallback: string) {
+  const title = content.match(/^#\s+(.+)$/m)?.[1] ?? fallback;
+  const sections = (content.match(/^##?\s+/gm) ?? []).length;
+  return { title, sections };
+}
 
 export default function CorpusPage() {
   const corpusDir = join(process.cwd(), "corpus");
-  const files = readdirSync(corpusDir)
-    .filter((f) => f.endsWith(".md"))
-    .sort((a, b) => (a === "COVERAGE.md" ? -1 : b === "COVERAGE.md" ? 1 : a.localeCompare(b)));
+  const documents = readdirSync(corpusDir)
+    .filter((file) => file.endsWith(".md"))
+    .sort((a, b) => (a === "COVERAGE.md" ? -1 : b === "COVERAGE.md" ? 1 : a.localeCompare(b)))
+    .map((file) => {
+      const content = readFileSync(join(corpusDir, file), "utf-8");
+      return { file, id: basename(file, ".md"), content, ...describeDocument(content, basename(file, ".md")) };
+    });
 
   return (
     <main>
-      <header className="shell" style={{ paddingTop: "clamp(64px, 8vw, 110px)", paddingBottom: "32px", textAlign: "center" }}>
-        <Reveal>
-        <span className="section-label">
-          <i className="dot" aria-hidden="true" />
-          Source material
-        </span>
-        <h1 className="text-display-lg" style={{ marginTop: "16px" }}>Corpus</h1>
-        <p className="text-subtitle-md" style={{ maxWidth: "680px", color: "var(--charcoal)", marginTop: "16px", marginInline: "auto" }}>
-          The complete, unedited source material for Meridian Nine, the fictional coworking space this demo
-          answers questions about. Every response is generated only from these documents — read them to check
-          whether a refusal was actually correct.
-        </p>
-        </Reveal>
-      </header>
+      <EditorialHeader
+        index="04 / Source archive"
+        eyebrow="Policy corpus"
+        title="the source material behind every answer."
+        intro={<p>Read the complete fictional policy set used by the demo. Every cited answer—and every refusal—can be checked against these committed files.</p>}
+        metadata={[
+          { label: "Documents", value: `${documents.length} committed Markdown files` },
+          { label: "Passages", value: "52 indexed chunks" },
+          { label: "Workspace", value: "Fictional; no customer data" },
+          { label: "Rendering", value: "Server-side from repository files" },
+        ]}
+        actions={<><Link className="text-link" href="/demo">Try a policy question →</Link><a className="text-link" href="https://github.com/ArielMagalsoDev/provenance/tree/main/corpus" target="_blank" rel="noopener noreferrer">View source files ↗</a></>}
+      />
 
-      <section style={{ paddingTop: 0 }}>
-        <Reveal delay={0.1} className="shell">
-        <div style={{ maxWidth: "760px", marginInline: "auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "48px" }}>
-          {files.map((file) => {
-            const content = readFileSync(join(corpusDir, file), "utf-8");
-            return (
-              <section key={file} id={basename(file, ".md")}>
-                <div className="text-caption" style={{ letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--stone)", marginBottom: "10px" }}>
-                  {file}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "12px" }}>{renderMarkdownLite(content)}</div>
-              </section>
-            );
-          })}
+      <section className="editorial-section corpus-section">
+        <div className="shell route-layout corpus-layout">
+          <RouteIndex title="Documents" items={documents.map((document, index) => ({ href: `#${document.id}`, index: String(index + 1).padStart(2, "0"), label: document.file }))} />
+          <div className="corpus-publication">
+            <div className="corpus-archive-head"><span>File</span><span>Topic</span><span>Sections</span></div>
+            {documents.map((document, index) => (
+              <Reveal key={document.file}>
+                <article className="corpus-document" id={document.id}>
+                  <header>
+                    <div><span>{String(index + 1).padStart(2, "0")}</span><code>{document.file}</code></div>
+                    <h2>{document.title}</h2>
+                    <p>{document.sections} indexed sections</p>
+                  </header>
+                  <div className="markdown-content corpus-markdown">{renderMarkdownLite(document.content)}</div>
+                  <Link className="text-link" href="/demo">Try this policy in the demo →</Link>
+                </article>
+              </Reveal>
+            ))}
+          </div>
         </div>
-        </Reveal>
       </section>
     </main>
   );

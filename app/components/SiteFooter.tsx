@@ -1,51 +1,64 @@
 import Link from "next/link";
 
+const FOOTER_COLUMNS = [
+  {
+    title: "Case study.",
+    links: [
+      { href: "/#overview", label: "Overview" },
+      { href: "/architecture", label: "Engineering" },
+      { href: "/evals", label: "Evidence" },
+    ],
+  },
+  {
+    title: "Product.",
+    links: [
+      { href: "/demo", label: "Guided demo" },
+      { href: "/inbox", label: "Agent inbox" },
+      { href: "/corpus", label: "Policy corpus" },
+    ],
+  },
+  {
+    title: "Ariel.",
+    links: [
+      { href: "https://arielmagalso.com", label: "Portfolio ↗", external: true },
+      { href: "https://github.com/ArielMagalsoDev/provenance", label: "GitHub ↗", external: true },
+      { href: "https://www.linkedin.com/in/magalsoariel", label: "LinkedIn ↗", external: true },
+      { href: "mailto:hello@arielmagalso.com", label: "Email ↗" },
+    ],
+  },
+] as const;
+
 export function SiteFooter() {
   return (
-    <footer className="footer-region">
+    <footer className="editorial-footer">
       <div className="shell">
-        <div className="footer-top">
-          <div>
-            <div className="brand" style={{ marginBottom: "12px" }}>
-              <span className="brand-mark" aria-hidden="true" />
-              <span>Provenance</span>
-            </div>
-            <p className="text-body-sm" style={{ color: "var(--steel)", maxWidth: "260px" }}>
-              An independent AI automation case study — cited answers, human review, and a real audit trail.
-            </p>
-          </div>
-          <div className="footer-cols">
-            <div className="footer-col">
-              <h4>Case study</h4>
-              <Link href="/#overview">Overview</Link>
-              <Link href="/#engineering">Engineering</Link>
-              <Link href="/#evidence">Evidence</Link>
-            </div>
-            <div className="footer-col">
-              <h4>Product</h4>
-              <Link href="/demo">Guided demo</Link>
-              <Link href="/inbox">Inbox</Link>
-              <Link href="/corpus">Policy corpus</Link>
-            </div>
-            <div className="footer-col">
-              <h4>Ariel</h4>
-              <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio ↗</a>
-              <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">
-                GitHub ↗
-              </a>
-              <a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-              <a href="mailto:hello@arielmagalso.com">Contact ↗</a>
-            </div>
-          </div>
+        <div className="footer-statement">
+          <span className="footer-kicker">Ready to see how Ariel builds accountable AI workflows?</span>
+          <h2>Turn an AI prototype into a workflow people can trust.</h2>
+          <a className="cyan-action footer-contact" href="mailto:hello@arielmagalso.com">Contact Ariel&nbsp;→</a>
         </div>
-        <div className="footer-bottom">
-          <span>Provenance is a fictional product concept for demonstration purposes.</span>
-          <span>
-            A project designed and built by{" "}
-            <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">
-              Ariel Magalso
-            </a>
-          </span>
+
+        <div className="footer-directory">
+          <div className="footer-brand-block">
+            <Link className="footer-brand" href="/">provenance.</Link>
+            <p>An independent AI automation case study designed and built by Ariel Magalso.</p>
+          </div>
+          {FOOTER_COLUMNS.map((column) => (
+            <div className="footer-column" key={column.title}>
+              <h3>{column.title}</h3>
+              {column.links.map((link) => "external" in link && link.external ? (
+                <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+              ) : (
+                <Link href={link.href} key={link.href}>{link.label}</Link>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="footer-legal">
+          <span>Independent portfolio project. Fictional workspace. No customer data.</span>
+          <span>Designed and built by Ariel Magalso.</span>
+          <span>© 2026 Provenance.</span>
         </div>
       </div>
     </footer>

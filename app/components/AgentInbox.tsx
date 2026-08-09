@@ -23,7 +23,7 @@ function formatTime(iso: string): string {
   }
 }
 
-export function AgentInbox() {
+export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
   const [tickets, setTickets] = useState<InboxTicketRow[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -103,18 +103,15 @@ export function AgentInbox() {
   }
 
   return (
-    <section style={{ paddingTop: "48px" }}>
+    <section className="product-workspace inbox-workspace" style={{ paddingTop: showHeader ? "48px" : 0 }}>
       <div className="shell">
-        <span className="section-label" style={{ marginBottom: "14px" }}>
-          <i className="dot" aria-hidden="true" />
-          Agent Inbox
-        </span>
-        <h1 className="text-display-lg">Escalated tickets</h1>
-        <p className="text-body-md" style={{ color: "var(--steel)", marginTop: "10px", maxWidth: "640px" }}>
-          Tickets the pipeline couldn&apos;t automatically resolve. Read the evidence, write or edit a response, and
-          approve it — the correction is embedded into your workspace so the same question answers on its own next
-          time.
-        </p>
+        {showHeader && (
+          <div className="legacy-route-heading">
+            <span className="section-label"><i className="dot" aria-hidden="true" />Agent inbox</span>
+            <h1 className="text-display-lg">Escalated tickets</h1>
+            <p className="text-body-md">Review evidence, edit a response, and teach a correction when automation stops.</p>
+          </div>
+        )}
 
         {approved && (
           <div className="card-feature" style={{ marginTop: "24px", background: "var(--primary-soft)", borderColor: "#c7d3fb" }}>
@@ -147,9 +144,9 @@ export function AgentInbox() {
           </div>
         )}
 
-        <div className="card-feature" style={{ padding: 0, overflow: "hidden", marginTop: "24px" }}>
+        <div className="card-feature inbox-panel" style={{ padding: 0, overflow: "hidden", marginTop: "24px" }}>
           <div className="ticket-grid" style={{ display: "grid", gridTemplateColumns: ".85fr 1.2fr" }}>
-            <article style={{ padding: "20px", borderRight: "1px solid var(--hairline-soft)" }}>
+            <article className="inbox-queue" style={{ padding: "20px", borderRight: "1px solid var(--hairline-soft)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "14px", borderBottom: "1px solid var(--hairline-soft)" }}>
                 <span className="text-body-sm-bold">Queue</span>
                 <span className="text-caption" style={{ color: "var(--stone)" }}>
@@ -175,7 +172,7 @@ export function AgentInbox() {
                       key={t.id}
                       type="button"
                       onClick={() => selectTicket(t)}
-                      className={`radio-option${selectedId === t.id ? " selected" : ""}`}
+                      className={`radio-option inbox-queue-row${selectedId === t.id ? " selected" : ""}`}
                       style={{ textAlign: "left" }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "flex-start" }}>
@@ -199,7 +196,7 @@ export function AgentInbox() {
               )}
             </article>
 
-            <article style={{ padding: "20px" }}>
+            <article className="inbox-detail" style={{ padding: "20px" }}>
               {!selected ? (
                 <div style={{ padding: "60px 20px", textAlign: "center", color: "var(--stone)" }}>
                   Select a ticket from the queue to review its evidence and respond.
@@ -241,7 +238,7 @@ export function AgentInbox() {
                     </div>
                   )}
 
-                  <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+                  <div className="inbox-decision-rail">
                     <span className="btn-glow-wrap" style={{ flex: 1 }}>
                       <Button
                         type="button"

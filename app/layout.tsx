@@ -1,24 +1,39 @@
 import type { Metadata } from "next";
-import { Geist, Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SiteNav } from "./components/SiteNav";
 import { SiteFooter } from "./components/SiteFooter";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Provenance",
-  description: "Resolve routine support questions without inventing company policy.",
+  metadataBase: new URL("https://provenance.arielmagalso.com"),
+  title: {
+    default: "Provenance — AI automation case study by Ariel Magalso",
+    template: "%s — Provenance",
+  },
+  description: "An auditable AI support workflow designed and built by Ariel Magalso.",
+  openGraph: {
+    type: "website",
+    siteName: "Provenance",
+    title: "Provenance — Reliable AI automation by Ariel Magalso",
+    description: "An auditable AI support workflow that answers, escalates, or blocks based on evidence.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Provenance — Reliable AI automation by Ariel Magalso",
+    description: "An auditable AI support workflow that answers, escalates, or blocks based on evidence.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geist.variable} ${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <div className="gradient-strip" aria-hidden="true" />
+        <a className="skip-link" href="#main-content">Skip to content</a>
         <SiteNav />
-        {children}
+        <div id="main-content">{children}</div>
         <SiteFooter />
       </body>
     </html>

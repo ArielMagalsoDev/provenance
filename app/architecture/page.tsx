@@ -1,114 +1,81 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { ArchiveTable, EditorialHeader, RouteIndex } from "../components/Editorial";
 import { Reveal } from "../components/Reveal";
 
 export const metadata: Metadata = {
-  title: "Architecture — Provenance",
-  description: "How the production-shaped automation pipeline works, in plain language.",
+  title: "Architecture",
+  description: "How Provenance retrieves evidence, verifies claims, and earns permission to answer or route a support ticket.",
 };
 
 const STAGES = [
-  {
-    title: "Policy ingestion and versioning",
-    body: (
-      <>
-        Source policy documents live in <code>/corpus</code> as plain markdown, committed to the repository. A
-        script splits each document on headings, chunks the content, embeds it, and upserts it into Postgres.
-        Re-running ingestion re-indexes the corpus without any application code changing. Each ingest run is
-        stamped with a corpus version that flows through to every citation shown to a user.
-      </>
-    ),
-  },
-  {
-    title: "Input-security screening",
-    body: "Before anything else touches a model or a database write that costs money, the incoming message is checked against a fast deny-list of unambiguous injection phrasing, then — if that doesn't already catch it — a small classifier judges whether the message is a genuine on-topic question, off-topic, or an attempt to manipulate the system. A blocked request never reaches retrieval or generation.",
-  },
-  {
-    title: "Retrieval",
-    body: "The message is embedded and compared against every indexed passage by cosine similarity; the top handful of passages come back with a similarity score each. Retrieval doesn't decide anything on its own — a passage that merely mentions similar words is not evidence the question is answered, which is exactly what the next two stages check for.",
-  },
-  {
-    title: "Grounded response generation",
-    body: "A response is drafted using only the retrieved passages as source material, with instructions to state only what those passages directly support, to leave the response empty rather than reason from what the passages don't say, and not to conflate related-but-distinct policy concepts (liability is not insurance, premises coverage is not member coverage).",
-  },
-  {
-    title: "Claim verification and the evidence-sufficiency gate",
-    body: "The draft is broken into individual factual claims, and each claim is scored against the retrieved passages for whether it's actually entailed by them — plus a small non-model lexical check as a sanity test against the verifier over-agreeing with its own generator. A response is only kept if the mean claim score clears a threshold and the single weakest claim clears its own floor — one fabricated or conflated claim hiding among several well-supported ones is not enough to pass.",
-  },
-  {
-    title: "Routing: automatic reply vs. human review vs. blocked",
-    body: "If verification passes, the ticket is approved for an automatic reply, citing exactly the passages the verifier confirmed. If it doesn't — missing, ambiguous, or only topically adjacent evidence — the ticket routes to human review with the retrieved evidence and a plain-language reason attached. If screening blocked it, it never reaches this stage at all.",
-  },
-  {
-    title: "Ticketing and messaging integration",
-    body: (
-      <>
-        Replying to the customer stays simulated — an approved response is marked &quot;sent&quot; without
-        touching a real email or helpdesk system. But when a Slack connector is configured, the notification
-        itself is real: every ticket posts to a Slack channel, and a human-review ticket gets clickable
-        Approve/Reject buttons that resolve the ticket for real from inside Slack — the same effect as acting in
-        the Agent Inbox, signature-verified and idempotent against retries. See{" "}
-        <code>docs/PLAN-slack-integration.md</code> for the design, and <code>docs/PRODUCT-PLAN.md</code> for what
-        a CRM/helpdesk connector on top of this would add.
-      </>
-    ),
-  },
-  {
-    title: "Audit events and evaluation",
-    body: (
-      <>
-        Every ticket writes a real, persisted audit event per stage — this isn&apos;t simulated, even though the
-        downstream send/escalate action is. Separately, a 43-case evaluation suite (including the three guided
-        scenarios, pinned as regression cases) runs the same pipeline directly and reports accuracy, false-refusal
-        rate, and fabrication rate per category — see <Link href="/evals" style={{ textDecoration: "underline" }}>/evals</Link>.
-      </>
-    ),
-  },
-];
+  ["ingest", "01", "Policy ingestion + versioning", "Approved Markdown is split by heading, chunked, embedded, and upserted into Postgres. Each run receives a corpus version that follows every citation."],
+  ["screen", "02", "Input security before spend", "A fast deny-list and a small classifier separate genuine questions from off-topic or manipulative requests before retrieval, generation, or a costly database write."],
+  ["retrieve", "03", "Transparent retrieval", "The ticket is embedded and compared with every indexed passage. Ranked passages return with similarity scores and stable IDs; retrieval alone never decides that a question is answered."],
+  ["generate", "04", "Evidence-bound generation", "The model drafts only from retrieved passages, leaves the answer empty when support is missing, and is explicitly warned not to conflate adjacent policy concepts."],
+  ["verify", "05", "Claim-level verification", "The draft is decomposed into factual claims. Each claim receives an entailment score plus a lexical sanity check so one weak statement cannot hide inside an otherwise grounded answer."],
+  ["route", "06", "Three responsible routes", "Verified drafts become cited answers. Missing or ambiguous evidence goes to human review. Unsafe instructions remain blocked before the answer pipeline begins."],
+  ["operate", "07", "Ticketing + human handoff", "Customer sending is simulated, while the inbox and optional Slack notification carry evidence, reason, and approve or reject controls into the operator workflow."],
+  ["evaluate", "08", "Audit + evaluation", "Every stage writes a persisted event. A committed 45-case development suite runs the same pipeline and reports route accuracy, false refusal, and fabrication by category."],
+] as const;
+
+const THRESHOLDS = [
+  ["Input screening", "Unsafe or manipulative intent", "Block before generation"],
+  ["Evidence sufficiency", "No direct support in retrieved passages", "Human review"],
+  ["Mean groundedness", "Aggregate claim score misses threshold", "Human review"],
+  ["Minimum groundedness", "Any single claim misses its floor", "Human review"],
+  ["All gates pass", "Every material claim is supported", "Answer with citations"],
+] as const;
 
 export default function ArchitecturePage() {
   return (
     <main>
-      <header className="shell" style={{ paddingTop: "clamp(64px, 8vw, 110px)", paddingBottom: "32px", textAlign: "center" }}>
-        <Reveal>
-        <span className="section-label">
-          <i className="dot" aria-hidden="true" />
-          System design
-        </span>
-        <h1 className="text-display-lg" style={{ marginTop: "16px" }}>Architecture</h1>
-        <p className="text-subtitle-md" style={{ maxWidth: "680px", color: "var(--charcoal)", marginTop: "16px", marginInline: "auto" }}>
-          A ticket enters, and one of three things happens: it gets an approved automatic response, it gets routed
-          to a human with the evidence attached, or it gets blocked outright. Every stage below runs for every
-          ticket, in this order, and every stage&apos;s outcome is shown live in{" "}
-          <Link href="/demo" style={{ textDecoration: "underline" }}>the guided demo</Link> — nothing in the UI is
-          reconstructed after the fact.
-        </p>
-        </Reveal>
-      </header>
+      <EditorialHeader
+        index="02 / Engineering"
+        eyebrow="System architecture"
+        title="how provenance earns permission to act."
+        intro={<p>A support ticket moves through eight explicit stages. Each stage narrows what the system is allowed to do, and every decision remains visible after the run.</p>}
+        metadata={[
+          { label: "System", value: "Evidence-bound support automation" },
+          { label: "Corpus", value: "Versioned Markdown + Postgres" },
+          { label: "Retrieval", value: "Exact pgvector comparison" },
+          { label: "Model", value: "Claude Haiku" },
+          { label: "Deploy", value: "Next.js on Vercel" },
+        ]}
+        actions={<><Link className="text-link" href="/demo">Run the pipeline →</Link><a className="text-link" href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">View source ↗</a></>}
+      />
 
-      <section style={{ paddingTop: 0 }}>
-        <Reveal delay={0.1} className="shell">
-        <div style={{ maxWidth: "760px", marginInline: "auto" }}>
-          <Accordion type="single" defaultValue="stage-0" collapsible>
-            {STAGES.map((s, i) => (
-              <AccordionItem value={`stage-${i}`} key={s.title} className="!border-b-0 mb-3 rounded-xl border border-[var(--hairline-soft)] px-5">
-                <AccordionTrigger className="text-[18px] font-bold no-underline hover:no-underline py-4">
-                  <span>
-                    <span className="text-caption" style={{ color: "var(--stone)", marginRight: "10px" }}>
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    {s.title}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="text-[16px] leading-[1.5] pb-4" style={{ color: "var(--charcoal)" }}>
-                  {s.body}
-                </AccordionContent>
-              </AccordionItem>
+      <section className="editorial-section architecture-section">
+        <div className="shell route-layout">
+          <RouteIndex items={STAGES.map(([id, index, title]) => ({ href: `#${id}`, index, label: title }))} />
+          <div className="stage-list">
+            {STAGES.map(([id, index, title, body], stageIndex) => (
+              <Reveal key={id}>
+                <article className="architecture-stage" id={id}>
+                  <div className="stage-number">{index}</div>
+                  <div className="stage-copy"><span>{stageIndex < 2 ? "Control" : stageIndex < 5 ? "Reasoning" : "Operation"}</span><h2>{title}</h2><p>{body}</p></div>
+                  <div className={`stage-diagram stage-diagram-${stageIndex % 3}`} aria-hidden="true">
+                    <i /><i /><i /><b>{stageIndex === 0 ? "MD → VECTOR" : stageIndex === 4 ? "CLAIM → SCORE" : stageIndex === 5 ? "ANSWER / REVIEW / BLOCK" : "EVENT → AUDIT"}</b>
+                  </div>
+                  <details><summary>Implementation note <span>+</span></summary><p>{body} This behavior is exercised by the guided demo and recorded in its audit history.</p></details>
+                </article>
+              </Reveal>
             ))}
-          </Accordion>
+          </div>
         </div>
-        </Reveal>
+      </section>
+
+      <section className="editorial-section surface-section">
+        <div className="shell">
+          <div className="compact-section-heading"><span>09 / Decision gates</span><h2>thresholds turn model confidence into an operational route.</h2></div>
+          <ArchiveTable label="Decision gates" columns={["Gate", "Failure condition", "Route"]} rows={THRESHOLDS.map((row) => [...row])} />
+          <Reveal className="engineering-note">
+            <span>Bug caught by evals</span>
+            <h3>Related policy language is not the same as supporting evidence.</h3>
+            <p>The verifier initially allowed a liability passage to support an insurance-coverage claim. The development suite exposed the concept conflation, leading to stricter generation and entailment instructions.</p>
+          </Reveal>
+          <div className="section-actions"><Link href="/demo">Demo →</Link><Link href="/evals">Evals →</Link><Link href="/corpus">Corpus →</Link><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">Source ↗</a></div>
+        </div>
       </section>
     </main>
   );

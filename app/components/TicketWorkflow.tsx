@@ -69,7 +69,7 @@ const AUDIT_LABEL: Record<AuditEvent["stage"], string> = {
 
 const metaRow: React.CSSProperties = { display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--hairline-soft)" };
 
-export function TicketWorkflow() {
+export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [activeScenario, setActiveScenario] = useState<GuidedScenario | null>(null);
   const [token, setToken] = useState("");
@@ -128,17 +128,15 @@ export function TicketWorkflow() {
   const ticket = decision?.ticket;
 
   return (
-    <section style={{ paddingTop: "48px" }}>
+    <section className="product-workspace" style={{ paddingTop: showHeader ? "48px" : 0 }}>
       <div className="shell">
-        <span className="section-label" style={{ marginBottom: "14px" }}>
-          <i className="dot" aria-hidden="true" />
-          Guided demo
-        </span>
-        <h1 className="text-display-lg">Support inbox</h1>
-        <p className="text-body-md" style={{ color: "var(--steel)", marginTop: "10px", maxWidth: "640px" }}>
-          Fictional support inbox for Meridian Nine. Choose a ticket, or write your own — the pipeline below runs
-          live; only the send/escalate action is simulated.
-        </p>
+        {showHeader && (
+          <div className="legacy-route-heading">
+            <span className="section-label"><i className="dot" aria-hidden="true" />Guided demo</span>
+            <h1 className="text-display-lg">Support inbox</h1>
+            <p className="text-body-md">Choose a fictional ticket, or write your own. The full pipeline runs live; only the customer send action is simulated.</p>
+          </div>
+        )}
 
         <div style={{ marginTop: "28px" }}>
           <WorkspaceUpload token={token} onStatusChange={setWorkspaceScope} />
@@ -179,6 +177,7 @@ export function TicketWorkflow() {
             value={draft.customerName}
             onChange={(e) => setDraft((d) => ({ ...d, customerName: e.target.value }))}
             placeholder="Customer name (optional)"
+            aria-label="Customer name"
             className="input"
             style={{ width: "200px" }}
           />
@@ -187,6 +186,7 @@ export function TicketWorkflow() {
             value={draft.message}
             onChange={(e) => setDraft((d) => ({ ...d, message: e.target.value }))}
             placeholder="Or write your own ticket…"
+            aria-label="Ticket message"
             maxLength={1000}
             className="input"
             style={{ flex: 1, minWidth: "220px" }}
@@ -211,7 +211,7 @@ export function TicketWorkflow() {
           <div className="card-feature" style={{ padding: 0, overflow: "hidden", marginTop: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 24px", borderBottom: "1px solid var(--hairline-soft)" }}>
               <span className="text-caption" style={{ color: "var(--steel)", letterSpacing: "0.04em" }}>
-                MERIDIAN NINE / SUPPORT OPERATIONS
+                PROVENANCE / SUPPORT OPERATIONS
               </span>
               <Badge variant={badge} style={{ marginLeft: "auto" }}>
                 {decision.askResponse.cached ? "Cached run" : "Live run"}
@@ -278,13 +278,14 @@ export function TicketWorkflow() {
 
             <SlackNotificationCard decision={decision} />
 
-            <div style={{ borderTop: "1px solid var(--hairline-soft)", background: "var(--surface-soft)", padding: "18px 24px" }}>
-              <div className="text-body-sm-bold">Decision history</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "14px", marginTop: "12px" }}>
+            <div className="audit-archive">
+              <div className="audit-archive-head"><span>Decision history</span><span>Stage</span><span>Time</span></div>
+              <div className="audit-archive-rows">
                 {auditEvents.map((e, i) => (
-                  <div key={i}>
-                    <div className="text-caption" style={{ color: "var(--stone)" }}>{formatTime(e.timestamp)}</div>
-                    <div className="text-caption" style={{ marginTop: "4px", color: "var(--ink)" }}>{AUDIT_LABEL[e.stage]}</div>
+                  <div className="audit-archive-row" key={`${e.stage}-${e.timestamp}-${i}`}>
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    <strong>{AUDIT_LABEL[e.stage]}</strong>
+                    <time dateTime={e.timestamp}>{formatTime(e.timestamp)}</time>
                   </div>
                 ))}
               </div>

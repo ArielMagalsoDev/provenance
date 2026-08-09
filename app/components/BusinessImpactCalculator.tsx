@@ -24,10 +24,10 @@ function NumberInput({
   suffix?: string;
 }) {
   return (
-    <label style={{ display: "block" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+    <label className="impact-control" style={{ display: "block" }}>
+      <div className="impact-control-label" style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
         <span className="text-body-sm" style={{ color: "var(--steel)" }}>{label}</span>
-        <span className="text-body-sm-bold" style={{ color: "var(--ink)" }}>
+        <span className="impact-control-value text-body-sm-bold" style={{ color: "var(--ink)" }}>
           {value}
           {suffix ?? ""}
         </span>
@@ -39,6 +39,7 @@ function NumberInput({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        className="impact-range"
         style={{ width: "100%", accentColor: "var(--primary)" }}
       />
     </label>
@@ -47,7 +48,7 @@ function NumberInput({
 
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <article className="card-icon-feature">
+    <article className="impact-stat card-icon-feature">
       <span className="text-caption" style={{ color: "var(--stone)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
         {label}
       </span>
@@ -55,7 +56,7 @@ function Stat({ label, value, note }: { label: string; value: string; note?: str
         {value}
       </div>
       {note && (
-        <p className="text-caption" style={{ color: "var(--steel)", marginTop: "6px" }}>
+        <p className="impact-stat-note text-caption" style={{ color: "var(--steel)", marginTop: "6px" }}>
           {note}
         </p>
       )}
@@ -83,11 +84,12 @@ export function BusinessImpactCalculator() {
   }, [ticketsPerMonth, eligibleRate, minutesSaved, staffCostPerHour, modelCostPerRequest, implementationCost]);
 
   return (
-    <div className="card-feature" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "28px" }}>
-      <div>
+    <div className="impact-calculator card-feature" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "28px" }}>
+      <div className="impact-calculator-head">
         <span className="badge" style={{ background: "var(--surface-soft)", color: "var(--steel)" }}>
           <i className="badge-dot" /> Illustrative calculator
         </span>
+        <h3>Model the opportunity. Keep the assumptions visible.</h3>
         <p className="text-body-sm" style={{ color: "var(--steel)", marginTop: "14px" }}>
           Adjust the assumptions for your own operation.{" "}
           <strong style={{ color: "var(--ink)" }}>These are not measured customer results</strong> — this is a
@@ -95,7 +97,7 @@ export function BusinessImpactCalculator() {
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px 32px" }}>
+      <div className="impact-controls" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px 32px" }}>
         <NumberInput label="Support tickets per month" value={ticketsPerMonth} onChange={setTicketsPerMonth} min={50} max={5000} step={50} />
         <NumberInput label="Automation-eligible rate" value={eligibleRate} onChange={setEligibleRate} min={0} max={100} step={1} suffix="%" />
         <NumberInput label="Minutes saved per eligible ticket" value={minutesSaved} onChange={setMinutesSaved} min={1} max={30} step={0.1} suffix=" min" />
@@ -105,7 +107,7 @@ export function BusinessImpactCalculator() {
         <NumberInput label="One-time implementation cost" value={implementationCost} onChange={setImplementationCost} min={0} max={100000} step={500} suffix=" USD" />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px" }}>
+      <div className="impact-results" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px" }}>
         <Stat label="Tickets eligible for automatic resolution" value={results.eligibleTickets.toLocaleString()} note="per month" />
         <Stat label="Staff hours potentially returned" value={results.staffHoursReturned.toFixed(1)} note="per month" />
         <Stat label="Human-review rate (target)" value={`${reviewRate}%`} note="of tickets not auto-resolved" />
