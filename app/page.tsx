@@ -2,39 +2,119 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDED_SCENARIOS } from "@/lib/scenarios";
 import { Button } from "@/components/ui/button";
-import { BusinessImpactCalculator } from "./components/BusinessImpactCalculator";
+import { ButtonArrow } from "./components/ButtonArrow";
 import { CountUp } from "./components/CountUp";
+import { DottedArrows } from "./components/DottedArrows";
+import { FramePanel } from "./components/FramePanel";
+import { PROCESS_ART, StatsArt } from "./components/ProcessArt";
 import { Reveal } from "./components/Reveal";
-import { ArchiveTable, EditorialStat, OutcomeMark, SectionIntro } from "./components/Editorial";
+import { OutcomeMark, SectionIntro } from "./components/Editorial";
 
 export const metadata: Metadata = {
   title: "Provenance — AI support automation case study by Ariel Magalso",
   description: "Provenance is an auditable AI support workflow designed and built by Ariel Magalso, with cited answers, claim verification, human review, and a live evaluation suite.",
 };
 
-const STACK = [
-  ["Interface", "Next.js 16 + React 19", "Product UI and API routes"],
-  ["Retrieval", "Postgres + pgvector", "Exact search across 52 passages"],
-  ["Generation", "Claude Haiku", "Structured, evidence-bound responses"],
-  ["Verification", "Claim-level scoring", "Mean and minimum support gates"],
-  ["Operations", "Audit log + Slack", "Human review and persisted decisions"],
-  ["Safety", "Screening + spend controls", "Checks run before model spend"],
-] as const;
+const STACK_MARQUEE = ["Next.js 16", "React 19", "Postgres", "pgvector", "Claude Haiku", "Supabase", "Vercel", "TypeScript"];
 
-const PROCESS = [
-  ["01", "Ingest", "Approved policy becomes versioned, searchable evidence."],
-  ["02", "Retrieve", "The most relevant passages return with scores and IDs."],
-  ["03", "Generate", "A response is drafted from retrieved evidence only."],
-  ["04", "Verify", "Every material claim is checked against its support."],
-  ["05", "Route", "The system answers, requests review, or blocks safely."],
-  ["06", "Log", "Evidence, thresholds, and the final decision stay auditable."],
-] as const;
+const ROUTE_SHORT = {
+  approved: "Answered with citation",
+  human_review: "Escalated to review",
+  blocked: "Blocked pre-generation",
+} as const;
 
 const OUTCOME_LABEL = {
   approved: "A cited policy answer is safe to send.",
   human_review: "Evidence is insufficient, so judgment stays human.",
   blocked: "Unsafe instructions stop before retrieval and generation.",
 } as const;
+
+// The stages each route actually reaches. Screening runs before any expensive
+// call, so a blocked ticket never touches retrieval or verification — those
+// stages render as skipped rather than passed.
+const PIPELINE_STAGES = ["Screen", "Retrieve", "Verify"] as const;
+
+const STAGES_REACHED = {
+  approved: 3,
+  human_review: 3,
+  blocked: 1,
+} as const;
+
+const SERVICES = [
+  {
+    label: "Retrieval",
+    num: "01",
+    description: "Every ticket is embedded and compared against 52 indexed policy passages with cosine similarity.",
+    items: ["Postgres + pgvector", "gte-small embeddings", "Exact similarity scan", "Stable passage IDs"],
+  },
+  {
+    label: "Claim verification",
+    num: "02",
+    description: "The drafted answer is decomposed into atomic claims and checked against retrieved evidence.",
+    items: ["Batched entailment scoring", "Mean-score gate", "Per-claim floor", "Lexical sanity check"],
+  },
+  {
+    label: "Responsible routing",
+    num: "03",
+    description: "Verified drafts become cited answers. Missing evidence goes to review. Unsafe input gets blocked.",
+    items: ["Pre-generation screening", "Threshold routing", "Rate limiting", "Refusal as an outcome"],
+  },
+  {
+    label: "Audit + handoff",
+    num: "04",
+    description: "Every stage writes a persisted event, and human-review tickets carry evidence into the inbox.",
+    items: ["Full audit log", "Agent inbox", "Slack notifications", "Session-scoped teaching"],
+  },
+];
+
+const PROCESS = [
+  ["01", "Analyze & screen", "The ticket is classified and checked for manipulative or off-topic intent before anything costs money."],
+  ["02", "Retrieve & plan", "Relevant policy passages return with similarity scores — the evidence the answer is allowed to use."],
+  ["03", "Generate & verify", "A draft is written from evidence only, then decomposed into claims and checked one by one."],
+  ["04", "Route & evolve", "The system answers, escalates, or blocks — and every run feeds the committed eval suite."],
+] as const;
+
+const COMPARISON = {
+  other: [
+    "Answers without citing a source",
+    "Hides uncertainty behind confident wording",
+    "No evaluation suite, just vibes",
+    "Black-box decision, no audit trail",
+    "Demo-only, no human-review path",
+  ],
+  us: [
+    "Every claim traces to a cited passage",
+    "Refusal is a first-class, visible outcome",
+    "45 committed development-set cases",
+    "Every stage logs a reviewable event",
+    "Live inbox with approve, dismiss, teach",
+  ],
+};
+
+const ROLES = [
+  ["Product design", "PD"],
+  ["Frontend engineering", "FE"],
+  ["Retrieval pipeline", "RP"],
+  ["Claim verification", "CV"],
+  ["Evaluation suite", "EV"],
+  ["Human-in-the-loop ops", "HL"],
+  ["Documentation", "DC"],
+] as const;
+
+const EVIDENCE_TIMELINE = [
+  ["JUL 2026", "Policy corpus + coverage map committed", "Corpus →", "/corpus"],
+  ["JUL 2026", "Retrieval + verification pipeline shipped", "Architecture →", "/architecture"],
+  ["AUG 2026", "45/45 development-set suite passing", "Evals →", "/evals"],
+  ["AUG 2026", "Verifier bug caught by the eval suite", "Architecture →", "/architecture"],
+  ["AUG 2026", "Human-review inbox + Slack handoff shipped", "Inbox →", "/inbox"],
+] as const;
+
+const WHY_CHOOSE = [
+  ["Evidence-bound", "Every answer cites a real passage — nothing is generated from nothing."],
+  ["Refusal-safe", "Insufficient evidence routes to a person instead of a confident guess."],
+  ["Fully audited", "Every pipeline stage writes an event you can inspect after the run."],
+  ["Honestly evaluated", "A committed 45-case suite, limitations included, not hidden."],
+] as const;
 
 const FAQ_ITEMS = [
   ["What did Ariel build personally?", "The product concept, interface, Next.js routes, retrieval layer, claim verification, audit workflow, evaluation suite, deployment, and documentation."],
@@ -46,81 +126,266 @@ const FAQ_ITEMS = [
 export default function Home() {
   return (
     <main>
-      <section id="overview" className="home-hero">
+      <section id="overview" className="agero-hero">
         <div className="shell">
-          <Reveal>
-            <div className="hero-kicker">
-              <span>AI automation case study</span>
-              <span>Designed + built by Ariel Magalso</span>
-            </div>
-            <h1>Reliable automation needs proof.</h1>
-          </Reveal>
+          <div className="hero-content">
+            <Reveal>
+              <p className="hero-trusted">Designed + built by Ariel Magalso</p>
+            </Reveal>
 
-          <div className="hero-lower-grid">
-            <Reveal delay={0.08} className="hero-summary">
-              <p>Provenance retrieves approved policy, verifies generated claims, and knows when not to answer.</p>
-              <div className="ownership-chips" aria-label="Ariel Magalso's ownership">
+            <Reveal delay={0.1}>
+              <h1 className="hero-stack">
+                <span className="hero-row hero-row-word">Reliable</span>
+                <span className="hero-row hero-row-word hero-row-muted">Automation</span>
+              </h1>
+              <p className="hero-sub">Provenance retrieves approved policy, verifies generated claims, and knows when not to answer — proof included.</p>
+              <div className="hero-chips" aria-label="Ariel Magalso's ownership">
                 <span>Product design</span><span>Full-stack</span><span>AI architecture</span><span>Evaluation</span>
               </div>
               <div className="hero-actions">
                 <Button asChild variant="ink"><Link href="/demo">Run the live demo</Link></Button>
-                <Button asChild variant="ink-outline"><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">View source ↗</a></Button>
+                <Button asChild variant="ink-outline"><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">View source<ButtonArrow /></a></Button>
               </div>
             </Reveal>
+          </div>
+        </div>
+      </section>
 
-            <Reveal delay={0.16} className="hero-product-wrap">
-              <Link className="hero-product-frame mockup-window hero-selected-mockup" href="/demo" aria-label="Open the Provenance guided demo">
-                <div className="mockup-window-bar"><span>PROVENANCE / TICKET 042</span><b>✓ APPROVED WITH CITATIONS</b></div>
-                <div className="mockup-split-body">
-                  <div className="mockup-ticket"><small>Incoming ticket</small><strong>Does membership include after-hours access?</strong><span>Dedicated Desk · Pricing and access</span></div>
-                  <div className="mockup-answer"><small>Verified response</small><p>A Dedicated Desk membership includes 24/7 building access via keycard.</p><div className="mockup-citation"><code>pricing-03</code><span>1 source · 0 unsupported claims</span></div></div>
+      <section aria-label="Built with" style={{ padding: "clamp(40px, 5vw, 64px) 0" }}>
+        <div className="shell">
+          <p className="label-mono" style={{ textAlign: "center", marginBottom: "20px" }}><span className="slash">//</span>Built with</p>
+          <div className="static-row">
+            {STACK_MARQUEE.map((item, i) => (
+              <span className="marquee-item" key={i}><span className="marquee-dot" /><b>{item}</b></span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="editorial-section">
+        <div className="shell">
+          <SectionIntro index="01" eyebrow="About this project" title="Great automation is more than answers, it's proof" />
+          <Reveal delay={0.08}>
+            <div className="stats-panel">
+              <div className="stats-rows">
+                <p>The results are committed to the repo. Each number is reproducible.</p>
+                <div className="stat-row">
+                  <span className="stat-icon-tile">45</span>
+                  <div className="stat-row-body"><strong><CountUp value={45} suffix="/45" /></strong><span>Development-set cases passing</span></div>
                 </div>
-                <div className="mockup-proof-strip"><span>Policy gate · Answer with citations →</span><strong>0.96</strong><em>Mean groundedness</em></div>
+                <div className="stat-row">
+                  <span className="stat-icon-tile">52</span>
+                  <div className="stat-row-body"><strong><CountUp value={52} /></strong><span>Indexed policy passages</span></div>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-icon-tile">%</span>
+                  <div className="stat-row-body"><strong><CountUp value={100} suffix="%" /></strong><span>Route accuracy across the committed dev set</span></div>
+                </div>
+              </div>
+              <div className="stats-visual"><StatsArt /></div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="engineering" className="editorial-section">
+        <div className="shell">
+          <SectionIntro index="02" eyebrow="Services" title="We build evidence-bound AI systems" />
+          <div className="service-grid">
+            {SERVICES.map((s, i) => (
+              <Reveal key={s.label} className={`service-card${i === 0 ? " service-card-featured" : ""}`}>
+                <span className="service-card-chip">{s.label}</span>
+                <p className="service-desc">{s.description}</p>
+                <span className="service-num-giant" aria-hidden="true">{s.num}</span>
+                <ul>{s.items.map((item) => <li key={item}>{item}</li>)}</ul>
+                {i === 0 && <Link className="service-arrow" href="/architecture" aria-label="Read the architecture">→</Link>}
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="editorial-section">
+        <div className="shell">
+          <Reveal>
+            <p className="editorial-section-kicker" style={{ justifyContent: "center", display: "flex" }}><span /> <span>Our vision</span></p>
+            <p className="vision-statement">
+              Every answer we ship starts <span className="vision-chip" aria-hidden="true">0.96</span> with a deep understanding of evidence
+            </p>
+            <p className="vision-copy">Provenance is a solo AI-automation case study focused on verification, not just generation. The pipeline doesn&apos;t just look grounded — it proves it on every run.</p>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="case-panel" style={{ marginTop: "clamp(32px, 4vw, 48px)" }}>
+              <div className="case-grid">
+                <div className="case-overlay">
+                  <h3>Routine pricing question, fully cited</h3>
+                  <p>A Dedicated Desk pricing question retrieves the right passage, drafts an answer, and clears both groundedness gates before it&apos;s allowed to send.</p>
+                </div>
+                <div className="case-flow">
+                  <p className="case-flow-question">Does a Dedicated Desk membership include after-hours access?</p>
+                  <span className="case-flow-hop">matches</span>
+                  <p className="case-flow-match">PRICING-03 <b>· 0.91 sim</b></p>
+                  <span className="case-flow-hop">gates</span>
+                  <div className="case-flow-gate"><strong>0.96</strong><span>passes → ships</span></div>
+                </div>
+              </div>
+              <div className="case-metrics">
+                <div><strong>0.96</strong><span>Mean groundedness</span></div>
+                <div><strong>1 source</strong><span>Citation resolved</span></div>
+                <div><strong>&lt;3s</strong><span>Pipeline latency</span></div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="process" className="editorial-section">
+        <div className="shell">
+          <SectionIntro index="04" eyebrow="Process" title="Combine retrieval with verification" copy={<p>Every stage is designed to narrow what the system is allowed to do.</p>} />
+          <div className="process-stack">
+            {PROCESS.map(([index, title, copy], i) => {
+              const Art = PROCESS_ART[i];
+              return (
+                <Reveal key={index} className="process-card">
+                  <div className="process-visual">
+                    <Art />
+                  </div>
+                  <div className="process-card-foot">
+                    <span>//{index}</span>
+                    <div><h3>{title}</h3><p>{copy}</p></div>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Verified auditable grounded" style={{ padding: "clamp(32px, 4vw, 48px) 0" }}>
+        <div className="word-band" aria-hidden="true">
+          <span className="word">VERIFIED</span>
+          <DottedArrows />
+          <span className="word">AUDITABLE</span>
+          <DottedArrows />
+          <span className="word">GROUNDED</span>
+        </div>
+      </section>
+      <div className="hatch-divider" aria-hidden="true" />
+
+      <section className="editorial-section">
+        <div className="shell">
+          <SectionIntro index="05" eyebrow="The difference" title="Why this is not a typical AI demo" center />
+          <div className="comparison-wrap">
+            <div className="comparison-table">
+              <Reveal className="comparison-col comparison-col-other">
+                <h3>Typical AI demos</h3>
+                <ul>{COMPARISON.other.map((item) => <li key={item}>{item}</li>)}</ul>
+              </Reveal>
+              <Reveal delay={0.08} className="comparison-col comparison-col-us">
+                <h3 className="comparison-brand">Provenance</h3>
+                <ul>{COMPARISON.us.map((item) => <li key={item}>{item}</li>)}</ul>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="editorial-section">
+        <div className="shell">
+          <SectionIntro index="06" eyebrow="The build, end to end" title="every role on this project, covered solo." />
+          <div className="roles-grid">
+            {ROLES.map(([role, initials]) => (
+              <Reveal key={role} className="role-card">
+                <span className="role-card-avatar">{initials}</span>
+                <strong>{role}</strong>
+                <span>Owned by Ariel Magalso</span>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={0.1} className="frame-panel" style={{ marginTop: "16px", padding: "clamp(24px, 3vw, 32px)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "20px" }}>
+            <div>
+              <p className="text-heading-sm">Ariel is searching for a team.</p>
+              <p className="text-body-sm" style={{ color: "var(--muted)", marginTop: "6px" }}>Open to product design and full-stack AI engineering roles.</p>
+            </div>
+            <Button asChild variant="ink"><a href="mailto:ariel.r.magalso@gmail.com">Contact Ariel →</a></Button>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="evidence" className="editorial-section surface-section">
+        <div className="shell">
+          <SectionIntro index="07" eyebrow="Evidence timeline" title="AI solutions that stand on evidence." />
+          <div className="evidence-timeline">
+            {EVIDENCE_TIMELINE.map(([date, title, cta, href]) => (
+              <Link className="evidence-timeline-row" href={href} key={title}>
+                <span>{date}</span><strong>{title}</strong><span>{cta}</span>
               </Link>
-            </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="proof-band" aria-label="Project proof">
-        <div className="shell editorial-stats-grid">
-          <EditorialStat value={<CountUp value={45} suffix="/45" />} label="Development-set cases passing" note="Committed evaluation result" />
-          <EditorialStat value={<CountUp value={52} />} label="Indexed policy passages" note="Versioned source material" />
-          <EditorialStat value={<CountUp value={3} />} label="Responsible outcomes" note="Answer, review, or block" />
-          <EditorialStat value={<CountUp value={1} />} label="Human-review workflow" note="Inbox and Slack handoff" />
+      <section className="editorial-section">
+        <div className="shell">
+          <Reveal className="evidence-quote-card">
+            <blockquote>&ldquo;Every committed case reached the correct route — answer, review, or block.&rdquo;</blockquote>
+            <cite>From the project&apos;s committed evidence — <Link href="/evals">evals/results.md</Link></cite>
+          </Reveal>
         </div>
       </section>
 
-      <section id="thesis" className="editorial-section">
+      <section className="editorial-section surface-section">
         <div className="shell">
-          <SectionIntro index="01" eyebrow="The thesis" title="an AI answer is only useful when the business can trust why it was allowed." />
-          <div className="thesis-grid">
-            <Reveal><p className="editorial-quote">“Producing an answer is easy. Earning permission to act is harder.”</p></Reveal>
-            <Reveal delay={0.1} className="thesis-copy">
-              <p>Support automation becomes a liability when it confidently invents pricing, access, refund, or liability policy. Provenance treats uncertainty as an operational outcome, not a UI error.</p>
-              <dl className="project-meta-list">
-                <div><dt>Role</dt><dd>Product designer + full-stack developer</dd></div>
-                <div><dt>Scope</dt><dd>Concept, interface, pipeline, evals, deployment</dd></div>
-                <div><dt>Constraint</dt><dd>Portfolio demo; fictional workspace; no customer data</dd></div>
-                <div><dt>Next proof</dt><dd>Held-out evaluation and threshold calibration</dd></div>
-              </dl>
-            </Reveal>
+          <SectionIntro index="08" eyebrow="Why choose this approach" title="built to help you trust the answer." />
+          <div className="why-choose-grid">
+            {WHY_CHOOSE.map(([title, copy]) => (
+              <Reveal key={title} className="why-choose-card">
+                <span>0{WHY_CHOOSE.findIndex(([t]) => t === title) + 1}</span>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      <section id="case-study" className="editorial-section surface-section">
+      <section id="case-study" className="editorial-section">
         <div className="shell">
-          <SectionIntro index="02" eyebrow="Featured case study" title="one inbox. three responsible outcomes." copy={<p>The same live pipeline handles a routine answer, an unsupported request, and an adversarial instruction.</p>} />
-          <div className="scenario-editorial-grid">
+          <SectionIntro index="09" eyebrow="Recent work" title="one inbox. three responsible outcomes." copy={<p>The same live pipeline handles a routine answer, an unsupported request, and an adversarial instruction.</p>} />
+          <div className="work-panel-stack">
             {GUIDED_SCENARIOS.map((scenario, index) => (
               <Reveal delay={index * 0.08} key={scenario.id}>
-                <Link className="scenario-editorial-card" href="/demo">
-                  <div><span>0{index + 1}</span><OutcomeMark outcome={scenario.expectedOutcome} compact /></div>
-                  <h3>{scenario.label}</h3>
-                  <p>{scenario.question.replace("Meridian Nine", "the workspace")}</p>
-                  <small>{OUTCOME_LABEL[scenario.expectedOutcome]}</small>
-                  <b>Run this scenario →</b>
+                <Link className="work-panel-full" href="/demo">
+                  <div className="work-panel-full-top">
+                    <div className="work-panel-full-head">
+                      <span className="work-panel-full-count">0{index + 1} / 03</span>
+                      <h3>{scenario.label}</h3>
+                    </div>
+                    <OutcomeMark outcome={scenario.expectedOutcome} compact />
+                  </div>
+
+                  <p className="work-panel-question">{scenario.question.replace("Meridian Nine", "the workspace")}</p>
+
+                  <div className="work-pipeline" aria-label={`Pipeline route: ${ROUTE_SHORT[scenario.expectedOutcome]}`}>
+                    {PIPELINE_STAGES.map((stage, stageIndex) => (
+                      <span className="work-pipeline-node" key={stage}>
+                        <span className={`work-pipeline-step${stageIndex >= STAGES_REACHED[scenario.expectedOutcome] ? " is-skipped" : ""}`}>{stage}</span>
+                        <span className="work-pipeline-sep" aria-hidden="true">›</span>
+                      </span>
+                    ))}
+                    <span className={`work-pipeline-step work-pipeline-final work-pipeline-final-${scenario.expectedOutcome}`}>
+                      {ROUTE_SHORT[scenario.expectedOutcome]}
+                    </span>
+                  </div>
+
+                  <div className="work-panel-foot">
+                    <div className="work-panel-facts">
+                      <span>{scenario.channel[0].toUpperCase() + scenario.channel.slice(1)}</span>
+                      <span>{scenario.category}</span>
+                      <span>{OUTCOME_LABEL[scenario.expectedOutcome]}</span>
+                    </div>
+                    <b>Run this scenario →</b>
+                  </div>
                 </Link>
               </Reveal>
             ))}
@@ -128,87 +393,84 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="engineering" className="editorial-section">
+      <section className="editorial-section surface-section">
         <div className="shell">
-          <SectionIntro index="03" eyebrow="Engineering archive" title="the system earns permission in layers." copy={<p>Every important decision is inspectable—from source passage to route outcome.</p>} />
-          <Reveal delay={0.08}>
-            <ArchiveTable label="Provenance engineering stack" columns={["Layer", "Implementation", "Purpose"]} rows={STACK.map((row) => [...row])} />
-          </Reveal>
-          <div className="section-actions"><Link href="/architecture">Read the architecture →</Link><Link href="/corpus">Inspect the policy corpus →</Link></div>
-        </div>
-      </section>
-
-      <section id="evidence" className="editorial-section dark-section">
-        <div className="shell">
-          <SectionIntro index="04" eyebrow="Published evidence" title="45 cases passed. the limitation is part of the result." />
-          <div className="evidence-layout">
-            <Reveal className="evidence-number">
-              <div className="evidence-number-top"><span>Evaluation snapshot</span><span>DEV-SET / V1</span></div>
-              <strong><CountUp value={45} suffix="/45" /></strong>
-              <div className="evidence-number-context">
-                <span>Development-set cases passing</span>
-                <p>Every committed case reached the correct route: answer, review, or block.</p>
-              </div>
-              <Link href="/evals">Read the scorecard →</Link>
+          <SectionIntro index="10" eyebrow="Two ways to review" title="90 seconds, or the deep dive." />
+          <div className="review-grid">
+            <Reveal className="review-card review-card-light">
+              <span className="review-card-time">Available now</span>
+              <h3>The 90-second tour</h3>
+              <ul>
+                <li>Run the routine-answer scenario</li>
+                <li>Watch the groundedness score gate the response</li>
+                <li>See a citation resolve to a real passage</li>
+                <li>Compare it against the blocked scenario</li>
+              </ul>
+              <Button asChild variant="ink"><Link href="/demo">Run the demo</Link></Button>
             </Reveal>
-            <Reveal delay={0.08} className="evidence-groups">
-              <div><span>22</span><p>Answerable</p><small>100% route accuracy</small></div>
-              <div><span>14</span><p>Unanswerable</p><small>0% false approval</small></div>
-              <div><span>9</span><p>Adversarial</p><small>0% unsafe completion</small></div>
+            <Reveal delay={0.08} className="review-card review-card-dark">
+              <span className="review-card-time">Available now</span>
+              <h3>The deep dive</h3>
+              <ul>
+                <li>Read all 8 architecture stages</li>
+                <li>Open the 45-case eval scorecard</li>
+                <li>Browse the full policy corpus</li>
+                <li>Review the source on GitHub</li>
+              </ul>
+              <Button asChild variant="ink-outline" style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff", background: "transparent" }}><Link href="/architecture">Read the architecture</Link></Button>
             </Reveal>
-            <Reveal delay={0.14} className="limitation-note">
-              <span>Known limitation</span><h3>This is development-set evidence, not held-out production proof.</h3><p>The suite caught real concept-conflation bugs. The next validation step is an unseen set and threshold calibration against it.</p><Link href="/evals">Open the committed scorecard →</Link>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      <section id="process" className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="05" eyebrow="Operational process" title="six stages between a question and an action." />
-          <div className="process-grid">
-            {PROCESS.map(([index, title, copy]) => (
-              <Reveal key={index} className="process-step">
-                <span>{index}</span><h3>{title}</h3><p>{copy}</p>
-              </Reveal>
-            ))}
           </div>
         </div>
       </section>
 
       <section id="recruiter-faq" className="editorial-section surface-section">
-        <div className="shell faq-layout">
-          <SectionIntro index="06" eyebrow="Recruiter FAQ" title="the useful questions before you open the source." />
-          <div className="faq-list">
-            {FAQ_ITEMS.map(([question, answer]) => (
-              <details className="faq-row" key={question}>
-                <summary><span>{question}</span><b aria-hidden="true">+</b></summary>
-                <p>{answer}</p>
-              </details>
-            ))}
+        <div className="shell">
+          <SectionIntro index="11" eyebrow="Before you get started" title="the useful questions before you open the source." center ghost="FAQ" />
+          <div className="faq-centered">
+            <div className="faq-list">
+              {FAQ_ITEMS.map(([question, answer]) => (
+                <details className="faq-row" key={question}>
+                  <summary><span>{question}</span><b aria-hidden="true">+</b></summary>
+                  <p>{answer}</p>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="editorial-section surface-section">
+      <section className="editorial-section">
         <div className="shell">
-          <SectionIntro index="07" eyebrow="Product thinking" title="measure possible value without disguising assumptions." copy={<p>This calculator is an illustrative model—not measured customer performance.</p>} />
-          <Reveal delay={0.08}><BusinessImpactCalculator /></Reveal>
+          <div className="lessons-strip">
+            <span><b>01 ·</b> Retrieval quality does not guarantee grounded output.</span>
+            <span><b>02 ·</b> Refusal is a successful outcome, not a failure state.</span>
+            <span><b>03 ·</b> Evaluation cases should model near-misses, not only typical questions.</span>
+          </div>
         </div>
       </section>
 
-      <section className="learning-section">
-        <div className="shell learning-editorial-grid">
-          <Reveal><span className="editorial-section-kicker"><span>07</span><span>What I learned</span></span><h2>the best automation makes its boundaries legible.</h2></Reveal>
-          <Reveal delay={0.1}>
-            <ul>
-              <li>Retrieval quality does not guarantee grounded output.</li>
-              <li>Refusal and escalation are successful outcomes when evidence is insufficient.</li>
-              <li>Evaluation cases should model business risk and near-misses, not only typical questions.</li>
-            </ul>
-            <p><strong>Next:</strong> build a held-out evaluation set and calibrate routing thresholds on unseen cases.</p>
-            <div className="section-actions"><Link href="/demo">Run the demo →</Link><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">View Ariel&apos;s portfolio ↗</a></div>
-          </Reveal>
+      <section>
+        <div className="shell">
+          <div className="contact-split">
+            <Reveal>
+              <p className="label-mono" style={{ marginBottom: "12px" }}><span className="slash">//</span>Let&apos;s connect</p>
+              <h2>Got a role in mind?</h2>
+              <p>I&apos;m designing and building accountable AI products, and I&apos;m open to product design and full-stack AI engineering roles.</p>
+              <div className="contact-split-actions">
+                <Button asChild variant="ink"><a href="mailto:ariel.r.magalso@gmail.com">Contact Ariel →</a></Button>
+                <Button asChild variant="ink-outline"><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio<ButtonArrow /></a></Button>
+              </div>
+            </Reveal>
+            <Reveal delay={0.1} className="contact-split-panel">
+              <FramePanel>
+                <dl>
+                  <div><dt>Email</dt><dd>ariel.r.magalso@gmail.com</dd></div>
+                  <div><dt>Based in</dt><dd>Manila, Philippines</dd></div>
+                  <div><dt>Availability</dt><dd>Open to new roles</dd></div>
+                </dl>
+              </FramePanel>
+            </Reveal>
+          </div>
         </div>
       </section>
     </main>

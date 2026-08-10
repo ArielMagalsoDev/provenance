@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TicketWorkflow } from "../components/TicketWorkflow";
 import { EditorialHeader } from "../components/Editorial";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Guided demo",
@@ -12,9 +13,10 @@ export default function DemoPage() {
   return (
     <main>
       <EditorialHeader
-        index="01 / Live product"
-        eyebrow="Guided demo"
+        index="01"
+        eyebrow="Live product"
         title="one inbox. three responsible outcomes."
+        ghost="Demo"
         intro={<p>Run a routine answer, an unsupported question, or an adversarial request through the same live evidence pipeline. Only the final customer send is simulated.</p>}
         metadata={[
           { label: "Pipeline", value: "Screen → retrieve → generate → verify → route" },
@@ -32,6 +34,18 @@ export default function DemoPage() {
         <span>04 · Every decision creates an audit event</span>
       </aside>
       <TicketWorkflow showHeader={false} />
+
+      <section className="editorial-section">
+        <div className="shell">
+          <div className="page-cta">
+            <div className="page-cta-label">
+              <span className="kicker-square" aria-hidden="true" />
+              <h2>Curious how each decision is made?</h2>
+            </div>
+            <Button asChild variant="ink"><Link href="/architecture">Read the architecture →</Link></Button>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

@@ -313,7 +313,7 @@ Heading:
 
 Supporting copy:
 
-> I'm Ariel Magalso, a web developer and AI automation specialist building systems that connect models, business data, and human operations.
+> I'm Ariel Magalso, a web developer and AI automation engineer building systems that connect models, business data, and human operations.
 
 Actions:
 

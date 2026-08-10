@@ -10,7 +10,11 @@
 // in supabase/functions/embed/index.ts.
 import { getSupabaseAdmin } from "./supabaseAdmin";
 
-const CONCURRENCY = 5;
+// 8, not 5: the workspace-upload route now races this against a hard wall-clock
+// budget (see EMBED_BUDGET_MS in app/api/workspace/upload/route.ts) because
+// Vercel Hobby caps functions at 10s regardless of maxDuration — fewer
+// sequential rounds directly buys back margin against that ceiling.
+const CONCURRENCY = 8;
 
 export type EmbedError = { ok: false; error: string; stage: "embed" };
 

@@ -20,11 +20,13 @@ const badgeVariants = cva(
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
         // Semantic routing states — soft-tint pills (tinted bg, saturated text),
-        // not solid fills. Maps approved/human_review/blocked outcomes. Not part
-        // of shadcn's default variant set.
-        success: "bg-[var(--primary-soft)] text-[var(--primary-deep)]",
-        warning: "bg-[#fdf3d9] text-[#8a6a06]",
-        critical: "bg-[#fde7ec] text-[var(--accent-pink-deep)]",
+        // not solid fills. Maps approved/human_review/blocked outcomes. Kept on
+        // dedicated --success/--warning/--critical tokens, deliberately NOT tied
+        // to --primary (orange), which is reserved for nav/CTA/interactive use —
+        // see docs/PLAN-agero-recruiter-first-redesign.md "must not" list.
+        success: "bg-[var(--success-soft)] text-[var(--success-deep)]",
+        warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
+        critical: "bg-[var(--critical-soft)] text-[var(--critical-strong)]",
       },
     },
     defaultVariants: {

@@ -6,7 +6,7 @@
 // reduced-motion media query in globals.css disables the whole effect.
 import { useEffect, useRef, type ReactNode } from "react";
 
-export function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+export function Reveal({ children, delay = 0, className = "", style }: { children: ReactNode; delay?: number; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,8 +29,13 @@ export function Reveal({ children, delay = 0, className = "" }: { children: Reac
     return () => io.disconnect();
   }, []);
 
+  const mergedStyle = {
+    ...(delay ? ({ "--reveal-delay": `${delay}s` } as React.CSSProperties) : undefined),
+    ...style,
+  };
+
   return (
-    <div ref={ref} className={`reveal ${className}`} style={delay ? ({ "--reveal-delay": `${delay}s` } as React.CSSProperties) : undefined}>
+    <div ref={ref} className={`reveal ${className}`} style={Object.keys(mergedStyle).length ? mergedStyle : undefined}>
       {children}
     </div>
   );

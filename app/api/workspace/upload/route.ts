@@ -13,12 +13,26 @@ import { chunkDocument, approxTokens } from "@/lib/chunk";
 import { getClientIp, hashIp, checkRateLimit, verifyTurnstile } from "@/lib/limit";
 import { ensureWorkspaceId, withWorkspaceCookie, workspaceExpiresAt } from "@/lib/workspace";
 
-export const maxDuration = 60;
+// Vercel's Hobby plan hard-caps serverless functions at 10s at the platform
+// level — it silently clamps any higher value here, it doesn't error at
+// build/deploy time. 10 is honest about that ceiling rather than implying
+// headroom this deployment doesn't have.
+export const maxDuration = 10;
 
+// Sized so a worst-case upload — max pages, max passages, each needing its
+// own embed-function round trip — finishes comfortably inside that 10s wall
+// clock (see the deadline race below for the belt-and-suspenders backstop).
 const MAX_FILE_BYTES = 2 * 1024 * 1024; // 2 MB
-const MAX_PDF_PAGES = 40;
-const MAX_EXTRACTED_CHARS = 120_000;
-const MAX_PASSAGES = 40;
+const MAX_PDF_PAGES = 20;
+const MAX_EXTRACTED_CHARS = 60_000;
+const MAX_PASSAGES = 20;
+
+// Soft internal budget for the embed + upsert phase, applied AFTER extraction
+// and chunking (whose cost is bounded by the limits above and is typically
+// small next to the embedding fan-out). Set below Vercel's real 10s ceiling
+// so a slow run returns this app's own JSON error instead of Vercel's
+// unhandled platform-level 504 — the UI has no handling for the latter.
+const EMBED_BUDGET_MS = 7_500;
 
 const UPLOAD_ERROR_MESSAGES: Record<string, string> = {
   bot_check_failed: "Bot check failed. Please try again.",
@@ -27,9 +41,10 @@ const UPLOAD_ERROR_MESSAGES: Record<string, string> = {
   unsupported_type: "Only .md, .txt, and .pdf files are supported.",
   too_large: "File is larger than the 2 MB demo limit.",
   no_text: "This PDF has no extractable text (likely a scanned image) — try a text-based PDF or Markdown instead.",
-  too_long: "Extracted text is longer than this demo supports (~120,000 characters).",
+  too_long: "Extracted text is longer than this demo supports (~60,000 characters).",
   too_many_pages: `PDF has more than ${MAX_PDF_PAGES} pages — trim it down for this demo.`,
   too_many_passages: `Document produced more than ${MAX_PASSAGES} chunks — trim it down for this demo.`,
+  timed_out: "This file is taking longer than the free-tier time budget allows. Try a shorter document.",
 };
 
 function errorResponse(error: string, status: number) {
@@ -89,7 +104,16 @@ export async function POST(req: Request) {
   const { id: workspaceId, isNew } = ensureWorkspaceId(req);
 
   try {
-    const embeddings = await embedTexts(chunks.map((c) => c.content));
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const deadline = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("EMBED_TIMEOUT")), EMBED_BUDGET_MS);
+    });
+    let embeddings: number[][];
+    try {
+      embeddings = await Promise.race([embedTexts(chunks.map((c) => c.content)), deadline]);
+    } finally {
+      clearTimeout(timeoutId!);
+    }
     const uploadTag = randomUUID().slice(0, 8);
     const rows = chunks.map((chunk, i) => ({
       id: `up-${uploadTag}-${String(i + 1).padStart(2, "0")}`,
@@ -113,6 +137,9 @@ export async function POST(req: Request) {
     });
     return isNew ? withWorkspaceCookie(res, workspaceId) : res;
   } catch (err) {
+    if (err instanceof Error && err.message === "EMBED_TIMEOUT") {
+      return errorResponse("timed_out", 504);
+    }
     console.error("[/api/workspace/upload] unexpected error:", err);
     return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }

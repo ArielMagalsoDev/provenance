@@ -14,6 +14,7 @@ export function EditorialHeader({
   intro,
   metadata = [],
   actions,
+  ghost,
 }: {
   eyebrow: string;
   index?: string;
@@ -21,12 +22,14 @@ export function EditorialHeader({
   intro: ReactNode;
   metadata?: MetadataItem[];
   actions?: ReactNode;
+  ghost?: string;
 }) {
   return (
-    <header className="editorial-page-header shell">
+    <header className={`editorial-page-header shell${ghost ? " has-ghost" : ""}`}>
+      {ghost && <span className="ghost-heading page-ghost" aria-hidden="true">{ghost}</span>}
       <Reveal>
         <div className="editorial-page-kicker">
-          <span>{index ?? "Case study"}</span>
+          <span>//{index ?? "Case study"}</span>
           <span>{eyebrow}</span>
         </div>
         <h1>{title}</h1>
@@ -124,17 +127,27 @@ export function SectionIntro({
   eyebrow,
   title,
   copy,
+  center = false,
+  ghost,
 }: {
   index: string;
   eyebrow: string;
   title: string;
   copy?: ReactNode;
+  center?: boolean;
+  ghost?: string;
 }) {
   return (
-    <Reveal className="editorial-section-intro">
-      <div className="editorial-section-kicker"><span>{index}</span><span>{eyebrow}</span></div>
+    <Reveal className={`editorial-section-intro${center ? " centered" : ""}${ghost ? " has-ghost" : ""}`}>
+      {ghost && <span className="ghost-heading" aria-hidden="true">{ghost}</span>}
+      <div className="editorial-section-kicker"><span>//{index}</span><span>{eyebrow}</span></div>
       <h2>{title}</h2>
       {copy && <div className="editorial-section-copy">{copy}</div>}
     </Reveal>
   );
+}
+
+/** Standalone "(Label)" parenthetical eyebrow, matching Agero's section labels. */
+export function SectionEyebrow({ children }: { children: ReactNode }) {
+  return <span className="section-eyebrow-paren">({children})</span>;
 }

@@ -301,7 +301,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
           <TurnstileWidget onToken={setToken} />
         </div>
 
-        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", maxWidth: "760px", margin: "24px auto 0", color: "var(--steel)" }} className="text-body-sm">
+        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginTop: "24px", color: "var(--steel)" }} className="text-body-sm">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: "2px", stroke: "var(--steel)" }}>
             <path d="M10 2.2 16 4.6v4.7c0 3.9-2.4 6.8-6 8.5-3.6-1.7-6-4.6-6-8.5V4.6L10 2.2Z" strokeWidth="1.5" />
             <path d="m7 10 1.8 1.8L13 7.7" strokeWidth="1.5" />

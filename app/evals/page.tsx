@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ButtonArrow } from "../components/ButtonArrow";
 import { EditorialHeader, EditorialStat } from "../components/Editorial";
 import { CountUp } from "../components/CountUp";
 import { Reveal } from "../components/Reveal";
@@ -20,9 +21,10 @@ export default function EvalsPage() {
   return (
     <main>
       <EditorialHeader
-        index="03 / Evidence"
-        eyebrow="Evaluation scorecard"
+        index="03"
+        eyebrow="Evidence"
         title="evidence, published as it ran."
+        ghost="Evidence"
         intro={<p>This page reads the committed evaluation result directly from the repository. It is reproducible development evidence—not a performance claim written after the fact.</p>}
         metadata={[
           { label: "Cases", value: "45 development-set scenarios" },
@@ -30,7 +32,7 @@ export default function EvalsPage() {
           { label: "Source", value: "Committed evals/results.md" },
           { label: "Next", value: "Held-out set + threshold calibration" },
         ]}
-        actions={<><Button asChild><a href="https://github.com/ArielMagalsoDev/provenance/tree/main/evals" target="_blank" rel="noopener noreferrer">View eval source ↗</a></Button><Button asChild variant="ink"><Link href="/demo">Run the demo</Link></Button></>}
+        actions={<><Button asChild><a href="https://github.com/ArielMagalsoDev/provenance/tree/main/evals" target="_blank" rel="noopener noreferrer">View eval source<ButtonArrow /></a></Button><Button asChild variant="ink"><Link href="/demo">Run the demo</Link></Button></>}
       />
 
       <section className="proof-band eval-proof-band">
@@ -58,6 +60,18 @@ export default function EvalsPage() {
             <div className="publication-bar"><span>COMMITTED RESULT</span><code>evals/results.md</code></div>
             {content ? <div className="markdown-content">{renderMarkdownLite(content)}</div> : <p>No result is committed yet. Run <code>npm run evals</code> to generate it.</p>}
           </Reveal>
+        </div>
+      </section>
+
+      <section className="editorial-section surface-section">
+        <div className="shell">
+          <div className="page-cta">
+            <div className="page-cta-label">
+              <span className="kicker-square" aria-hidden="true" />
+              <h2>Check a refusal against the source.</h2>
+            </div>
+            <Button asChild variant="ink"><Link href="/corpus">Browse the policy corpus →</Link></Button>
+          </div>
         </div>
       </section>
     </main>

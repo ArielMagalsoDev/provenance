@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowUpRight } from "../components/ButtonArrow";
 import { ArchiveTable, EditorialHeader, RouteIndex } from "../components/Editorial";
 import { Reveal } from "../components/Reveal";
+import { STAGE_ART } from "../components/StageArt";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Architecture",
@@ -31,9 +34,10 @@ export default function ArchitecturePage() {
   return (
     <main>
       <EditorialHeader
-        index="02 / Engineering"
-        eyebrow="System architecture"
-        title="how provenance earns permission to act."
+        index="02"
+        eyebrow="Engineering"
+        title="how Provenance earns permission to act."
+        ghost="Architecture"
         intro={<p>A support ticket moves through eight explicit stages. Each stage narrows what the system is allowed to do, and every decision remains visible after the run.</p>}
         metadata={[
           { label: "System", value: "Evidence-bound support automation" },
@@ -42,25 +46,28 @@ export default function ArchitecturePage() {
           { label: "Model", value: "Claude Haiku" },
           { label: "Deploy", value: "Next.js on Vercel" },
         ]}
-        actions={<><Link className="text-link" href="/demo">Run the pipeline →</Link><a className="text-link" href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">View source ↗</a></>}
+        actions={<><Link className="text-link" href="/demo">Run the pipeline →</Link><a className="text-link" href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">View source<ArrowUpRight /></a></>}
       />
 
       <section className="editorial-section architecture-section">
         <div className="shell route-layout">
           <RouteIndex items={STAGES.map(([id, index, title]) => ({ href: `#${id}`, index, label: title }))} />
           <div className="stage-list">
-            {STAGES.map(([id, index, title, body], stageIndex) => (
-              <Reveal key={id}>
-                <article className="architecture-stage" id={id}>
-                  <div className="stage-number">{index}</div>
-                  <div className="stage-copy"><span>{stageIndex < 2 ? "Control" : stageIndex < 5 ? "Reasoning" : "Operation"}</span><h2>{title}</h2><p>{body}</p></div>
-                  <div className={`stage-diagram stage-diagram-${stageIndex % 3}`} aria-hidden="true">
-                    <i /><i /><i /><b>{stageIndex === 0 ? "MD → VECTOR" : stageIndex === 4 ? "CLAIM → SCORE" : stageIndex === 5 ? "ANSWER / REVIEW / BLOCK" : "EVENT → AUDIT"}</b>
-                  </div>
-                  <details><summary>Implementation note <span>+</span></summary><p>{body} This behavior is exercised by the guided demo and recorded in its audit history.</p></details>
-                </article>
-              </Reveal>
-            ))}
+            {STAGES.map(([id, index, title, body], stageIndex) => {
+              const StageArt = STAGE_ART[stageIndex];
+              return (
+                <Reveal key={id}>
+                  <article className="architecture-stage" id={id}>
+                    <div className="stage-number">{index}</div>
+                    <div className="stage-copy"><span>{stageIndex < 2 ? "Control" : stageIndex < 5 ? "Reasoning" : "Operation"}</span><h2>{title}</h2><p>{body}</p></div>
+                    <div className={`stage-diagram stage-diagram-${stageIndex % 3}`}>
+                      <StageArt />
+                    </div>
+                    <details><summary>Implementation note <span>+</span></summary><p>{body} This behavior is exercised by the guided demo and recorded in its audit history.</p></details>
+                  </article>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -74,7 +81,19 @@ export default function ArchitecturePage() {
             <h3>Related policy language is not the same as supporting evidence.</h3>
             <p>The verifier initially allowed a liability passage to support an insurance-coverage claim. The development suite exposed the concept conflation, leading to stricter generation and entailment instructions.</p>
           </Reveal>
-          <div className="section-actions"><Link href="/demo">Demo →</Link><Link href="/evals">Evals →</Link><Link href="/corpus">Corpus →</Link><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">Source ↗</a></div>
+          <div className="section-actions"><Link href="/demo">Demo →</Link><Link href="/evals">Evals →</Link><Link href="/corpus">Corpus →</Link><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">Source<ArrowUpRight /></a></div>
+        </div>
+      </section>
+
+      <section className="editorial-section">
+        <div className="shell">
+          <div className="page-cta">
+            <div className="page-cta-label">
+              <span className="kicker-square" aria-hidden="true" />
+              <h2>See it decide something live.</h2>
+            </div>
+            <Button asChild variant="ink"><Link href="/demo">Run the demo →</Link></Button>
+          </div>
         </div>
       </section>
     </main>
