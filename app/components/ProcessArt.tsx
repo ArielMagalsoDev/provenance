@@ -1,10 +1,10 @@
 // Original SVG illustrations for the four process cards. Each drawing depicts
 // the actual pipeline stage it sits on: screening, retrieval, verification,
-// routing. Ink/lime/gray palette only; semantic outcome dots (green/amber/red)
+// routing. Ink/cobalt/gray palette only; semantic outcome dots (green/amber/red)
 // appear solely in the routing scene.
 
 const INK = "#0a0a0c";
-const LIME = "#98ff03";
+const LIME = "#3b82f6";
 const BAR = "#eef0f3";
 const LINE = "#d1d5db";
 const MUT = "#9ca3af";
@@ -111,6 +111,13 @@ export function RouteArt() {
 }
 
 export const PROCESS_ART = [ScreenArt, RetrieveArt, VerifyArt, RouteArt];
+
+export const PROCESS_ART_META = [
+  { number: "01", title: "Screen", note: "Input safety" },
+  { number: "02", title: "Retrieve", note: "Approved knowledge" },
+  { number: "03", title: "Verify", note: "Claim-level evidence" },
+  { number: "04", title: "Route", note: "Answer · review · block" },
+] as const;
 
 // Background diagram for the featured-scenario case panel: the actual
 // question in that card ("Does a Dedicated Desk membership...") flowing

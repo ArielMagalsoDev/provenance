@@ -1,11 +1,11 @@
 // Original SVG illustrations for the eight /architecture pipeline stages.
 // Each drawing depicts what that specific stage actually does — replacing
-// the earlier generic skeleton-bar placeholder. Same ink/lime/gray palette
+// the earlier generic skeleton-bar placeholder. Same ink/cobalt/gray palette
 // as ProcessArt.tsx; semantic outcome colors (green/amber/red) appear only
 // in the routing scene, matching the rest of the site's convention.
 
 const INK = "#0a0a0c";
-const LIME = "#98ff03";
+const LIME = "#3b82f6";
 const BAR = "#eef0f3";
 const LINE = "#d1d5db";
 const MUT = "#9ca3af";

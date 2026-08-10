@@ -45,7 +45,7 @@ export default function CorpusPage() {
   const categories = Array.from(new Set(documents.map((d) => d.category)));
 
   return (
-    <main>
+    <main className="agero-inner-page">
       <EditorialHeader
         index="04"
         eyebrow="Source archive"

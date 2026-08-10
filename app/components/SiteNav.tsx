@@ -1,23 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { AnnouncementBanner } from "./AnnouncementBanner";
 import { ArrowUpRight } from "./ButtonArrow";
-
-const MAIN_LINKS = [
-  { href: "/#overview", label: "Overview" },
-  { href: "/demo", label: "Demo" },
-  { href: "/architecture", label: "Engineering" },
-  { href: "/evals", label: "Evidence" },
-] as const;
 
 const EXTERNAL_LINKS = [
   { href: "https://github.com/ArielMagalsoDev/provenance", label: "Source" },
   { href: "https://arielmagalso.com", label: "Ariel" },
 ] as const;
 
+const RECRUITER_LINKS = [
+  { href: "/#case-study", label: "Case study" },
+  { href: "/demo", label: "Demo" },
+  { href: "/architecture", label: "Architecture" },
+  { href: "/evals", label: "Evidence" },
+  { href: "/corpus", label: "Corpus" },
+  { href: "/inbox", label: "Inbox" },
+] as const;
+
 export function SiteNav() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -56,7 +61,42 @@ export function SiteNav() {
     };
   }, [open]);
 
-  const closeMenu = () => setOpen(false);
+  useEffect(() => {
+    if (pathname !== "/" || !window.location.hash) return;
+
+    const restoreHashPosition = () => {
+      const target = document.querySelector<HTMLElement>(window.location.hash);
+      target?.scrollIntoView({ block: "start" });
+    };
+
+    const firstFrame = window.requestAnimationFrame(restoreHashPosition);
+    const afterLayout = window.setTimeout(restoreHashPosition, 500);
+    window.addEventListener("hashchange", restoreHashPosition);
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.clearTimeout(afterLayout);
+      window.removeEventListener("hashchange", restoreHashPosition);
+    };
+  }, [pathname]);
+
+  const closeMenu = () => {
+    setOpen(false);
+  };
+  const followNavLink = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    closeMenu();
+    if (pathname !== "/" || !href.startsWith("/#")) return;
+
+    const hash = href.slice(1);
+    const target = document.querySelector<HTMLElement>(hash);
+    if (!target) return;
+
+    event.preventDefault();
+    window.history.pushState(null, "", hash);
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const primaryLinks = RECRUITER_LINKS;
+  const secondaryLinks = EXTERNAL_LINKS.slice(0, 1);
 
   return (
     <>
@@ -73,10 +113,10 @@ export function SiteNav() {
               <nav className="nav-desktop" aria-label="Primary navigation" style={{ width: "100%", justifyContent: "space-between" }}>
                 <Link className="site-brand" href="/" aria-label="Provenance home" onClick={closeMenu}>Provenance</Link>
                 <div className="nav-links">
-                  {MAIN_LINKS.map((link) => (
-                    <Link href={link.href} key={link.href}>{link.label}</Link>
+                  {primaryLinks.map((link) => (
+                    <Link href={link.href} key={link.href} onClick={(event) => followNavLink(event, link.href)}>{link.label}</Link>
                   ))}
-                  {EXTERNAL_LINKS.map((link) => (
+                  {secondaryLinks.map((link) => (
                     <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
                   ))}
                 </div>
@@ -109,12 +149,12 @@ export function SiteNav() {
         <div ref={menuRef} id="mobile-menu" className="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
           <button className="mobile-menu-close" type="button" onClick={closeMenu} aria-label="Close navigation menu">Close</button>
           <nav aria-label="Mobile menu links">
-            {[...MAIN_LINKS, { href: "/corpus", label: "Corpus" }, { href: "/inbox", label: "Inbox" }].map((link, index) => (
-              <Link href={link.href} key={link.href} onClick={closeMenu}><span>{String(index + 1).padStart(2, "0")}</span>{link.label}</Link>
+            {primaryLinks.map((link, index) => (
+              <Link href={link.href} key={link.href} onClick={(event) => followNavLink(event, link.href)}><span>{String(index + 1).padStart(2, "0")}</span>{link.label}</Link>
             ))}
           </nav>
           <div className="mobile-menu-external">
-            {EXTERNAL_LINKS.map((link) => (
+            {secondaryLinks.map((link) => (
               <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer" onClick={closeMenu}>{link.label}<ArrowUpRight /></a>
             ))}
             <a href="mailto:ariel.r.magalso@gmail.com" onClick={closeMenu}>Email Ariel<ArrowUpRight /></a>

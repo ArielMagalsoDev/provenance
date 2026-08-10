@@ -1,501 +1,427 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDED_SCENARIOS } from "@/lib/scenarios";
-import { Button } from "@/components/ui/button";
-import { ButtonArrow } from "./components/ButtonArrow";
 import { CountUp } from "./components/CountUp";
-import { DottedArrows } from "./components/DottedArrows";
-import { FramePanel } from "./components/FramePanel";
-import { PixelBlocks } from "./components/PixelBlocks";
-import { PROCESS_ART, StatsArt } from "./components/ProcessArt";
+import { OutcomeMark } from "./components/Editorial";
 import { Reveal } from "./components/Reveal";
-import { OutcomeMark, SectionIntro } from "./components/Editorial";
 
 export const metadata: Metadata = {
-  title: "Provenance — AI support automation case study by Ariel Magalso",
-  description: "Provenance is an auditable AI support workflow designed and built by Ariel Magalso, with cited answers, claim verification, human review, and a live evaluation suite.",
+  title: "Ariel Magalso — Product designer + AI engineer",
+  description:
+    "A recruiter-first case study of Provenance, an accountable AI support product designed and built end to end by Ariel Magalso.",
 };
 
-const STACK_MARQUEE = ["Next.js 16", "React 19", "Postgres", "pgvector", "Claude Haiku", "Supabase", "Vercel", "TypeScript"];
+const CAPABILITIES = [
+  "Product design",
+  "Frontend engineering",
+  "Full-stack AI",
+  "Retrieval + verification",
+  "Evaluation systems",
+  "Human-in-the-loop ops",
+];
 
-const FRAMER_HERO_PIXEL_PATTERN = [
-  true, false, true, true,
-  false, true, false, false,
-  true, false, false, false,
+const OWNERSHIP = [
+  { code: "PD", title: "Product framing + interaction design", copy: "Defined the product problem, responsible outcomes, recruiter journey, and end-to-end interaction model." },
+  { code: "FE", title: "Frontend system + responsive implementation", copy: "Built the interface, responsive component system, live workflow, and accessible review states." },
+  { code: "AI", title: "Retrieval + claim verification", copy: "Implemented evidence retrieval, atomic claim checks, thresholds, and answer-review-block routing." },
+  { code: "QA", title: "Evaluation, documentation + deployment", copy: "Created the committed evaluation suite, documented the architecture, and deployed the working product." },
 ] as const;
 
-const FRAMER_BOTTOM_PIXEL_PATTERN = [
-  false, false, false, true,
-  false, false, true, false,
-  true, true, false, true,
+const PROOF_POINTS = [
+  [45, "/45", "Development cases passing"],
+  [52, "", "Indexed policy passages"],
+  [100, "%", "Route accuracy"],
 ] as const;
-
-const ROUTE_SHORT = {
-  approved: "Answered with citation",
-  human_review: "Escalated to review",
-  blocked: "Blocked pre-generation",
-} as const;
-
-const OUTCOME_LABEL = {
-  approved: "A cited policy answer is safe to send.",
-  human_review: "Evidence is insufficient, so judgment stays human.",
-  blocked: "Unsafe instructions stop before retrieval and generation.",
-} as const;
-
-// The stages each route actually reaches. Screening runs before any expensive
-// call, so a blocked ticket never touches retrieval or verification — those
-// stages render as skipped rather than passed.
-const PIPELINE_STAGES = ["Screen", "Retrieve", "Verify"] as const;
-
-const STAGES_REACHED = {
-  approved: 3,
-  human_review: 3,
-  blocked: 1,
-} as const;
 
 const SERVICES = [
   {
-    label: "Retrieval",
-    num: "01",
-    description: "Every ticket is embedded and compared against 52 indexed policy passages with cosine similarity.",
-    items: ["Postgres + pgvector", "gte-small embeddings", "Exact similarity scan", "Stable passage IDs"],
+    number: "01",
+    title: "Retrieve with boundaries",
+    copy: "Every question is matched against an approved policy corpus before the system is allowed to draft.",
+    tags: ["Postgres", "pgvector", "Stable source IDs"],
   },
   {
-    label: "Claim verification",
-    num: "02",
-    description: "The drafted answer is decomposed into atomic claims and checked against retrieved evidence.",
-    items: ["Batched entailment scoring", "Mean-score gate", "Per-claim floor", "Lexical sanity check"],
+    number: "02",
+    title: "Verify every claim",
+    copy: "Generated answers are decomposed into atomic claims and checked against the retrieved evidence.",
+    tags: ["Entailment scoring", "Per-claim floor", "Groundedness gate"],
   },
   {
-    label: "Responsible routing",
-    num: "03",
-    description: "Verified drafts become cited answers. Missing evidence goes to review. Unsafe input gets blocked.",
-    items: ["Pre-generation screening", "Threshold routing", "Rate limiting", "Refusal as an outcome"],
+    number: "03",
+    title: "Route responsibly",
+    copy: "The workflow answers, escalates, or blocks. Refusal is treated as a successful product outcome.",
+    tags: ["Pre-screening", "Human review", "Safe refusal"],
   },
   {
-    label: "Audit + handoff",
-    num: "04",
-    description: "Every stage writes a persisted event, and human-review tickets carry evidence into the inbox.",
-    items: ["Full audit log", "Agent inbox", "Slack notifications", "Session-scoped teaching"],
+    number: "04",
+    title: "Leave an audit trail",
+    copy: "Every stage persists a reviewable event so operators can understand why the system made its decision.",
+    tags: ["Audit events", "Operator inbox", "Slack handoff"],
   },
-];
-
-const PROCESS = [
-  ["01", "Analyze & screen", "The ticket is classified and checked for manipulative or off-topic intent before anything costs money."],
-  ["02", "Retrieve & plan", "Relevant policy passages return with similarity scores — the evidence the answer is allowed to use."],
-  ["03", "Generate & verify", "A draft is written from evidence only, then decomposed into claims and checked one by one."],
-  ["04", "Route & evolve", "The system answers, escalates, or blocks — and every run feeds the committed eval suite."],
 ] as const;
 
-const COMPARISON = {
-  other: [
-    "Answers without citing a source",
-    "Hides uncertainty behind confident wording",
-    "No evaluation suite, just vibes",
-    "Black-box decision, no audit trail",
-    "Demo-only, no human-review path",
-  ],
-  us: [
-    "Every claim traces to a cited passage",
-    "Refusal is a first-class, visible outcome",
-    "45 committed development-set cases",
-    "Every stage logs a reviewable event",
-    "Live inbox with approve, dismiss, teach",
-  ],
-};
-
-const ROLES = [
-  ["01", "Shape", "Product design", "PD"],
-  ["02", "Build", "Frontend engineering", "FE"],
-  ["03", "Ground", "Retrieval pipeline", "RP"],
-  ["04", "Verify", "Claim verification", "CV"],
-  ["05", "Measure", "Evaluation suite", "EV"],
-  ["06", "Operate", "Human-in-the-loop ops", "HL"],
-  ["07", "Explain", "Documentation", "DC"],
-] as const;
-
-const EVIDENCE_TIMELINE = [
-  ["JUL 2026", "Policy corpus + coverage map committed", "Corpus →", "/corpus"],
-  ["JUL 2026", "Retrieval + verification pipeline shipped", "Architecture →", "/architecture"],
-  ["AUG 2026", "45/45 development-set suite passing", "Evals →", "/evals"],
-  ["AUG 2026", "Verifier bug caught by the eval suite", "Architecture →", "/architecture"],
-  ["AUG 2026", "Human-review inbox + Slack handoff shipped", "Inbox →", "/inbox"],
-] as const;
-
-const WHY_CHOOSE = [
-  ["Evidence-bound", "Every answer cites a real passage — nothing is generated from nothing."],
-  ["Refusal-safe", "Insufficient evidence routes to a person instead of a confident guess."],
-  ["Fully audited", "Every pipeline stage writes an event you can inspect after the run."],
-  ["Honestly evaluated", "A committed 45-case suite, limitations included, not hidden."],
+const EVIDENCE = [
+  ["01", "Policy corpus", "52 approved passages with stable identifiers", "/corpus"],
+  ["02", "System architecture", "Eight inspectable stages from screen to route", "/architecture"],
+  ["03", "Evaluation suite", "45 committed cases covering answer, review, and block", "/evals"],
+  ["04", "Human handoff", "A working inbox for judgment that should stay human", "/inbox"],
 ] as const;
 
 const FAQ_ITEMS = [
-  ["What did Ariel build personally?", "The product concept, interface, Next.js routes, retrieval layer, claim verification, audit workflow, evaluation suite, deployment, and documentation."],
-  ["Is the demo connected to real customer data?", "No. It uses a fictional workspace and committed policy corpus. No customer data is used."],
-  ["What parts are simulated?", "The pipeline runs live, but sending a response to a real customer is simulated. Optional Slack operator notifications can be real when configured."],
-  ["What would need to change before production?", "A held-out evaluation set, threshold calibration, authenticated tenancy, durable connector permissions, and production observability would be required."],
+  ["What did Ariel build personally?", "The product concept, interface, retrieval layer, claim verification, audit workflow, evaluation suite, deployment, and documentation."],
+  ["Is the demo connected to customer data?", "No. It uses a fictional workspace and a committed policy corpus. No customer data is used."],
+  ["What is simulated?", "The pipeline runs live, but sending the final response to a real customer is simulated."],
+  ["What would production require?", "A held-out evaluation set, threshold calibration, authenticated tenancy, durable connector permissions, and production observability."],
 ] as const;
+
+function ArrowIcon() {
+  return (
+    <span className="ah-arrow-icon" aria-hidden="true">
+      <svg viewBox="0 0 16 16">
+        <path d="M4.5 11.5 11.5 4.5M6 4.5h5.5V10" />
+      </svg>
+    </span>
+  );
+}
+
+function InlineInfographic({ variant }: { variant: "verify" | "route" | "evidence" }) {
+  if (variant === "verify") {
+    return (
+      <svg viewBox="0 0 112 64" aria-hidden="true">
+        <circle className="ah-info-ring" cx="56" cy="32" r="23" />
+        <circle className="ah-info-accent-fill" cx="56" cy="32" r="18" />
+        <path className="ah-info-shield" d="M56 19 68 24v9c0 8-5 13-12 16-7-3-12-8-12-16v-9z" />
+        <path className="ah-info-check ah-info-check-light" d="m50 33 4 4 9-10" />
+        <circle className="ah-info-dot" cx="26" cy="32" r="3" />
+        <circle className="ah-info-dot" cx="86" cy="32" r="3" />
+        <path className="ah-info-line" d="M29 32h8m38 0h8" />
+      </svg>
+    );
+  }
+
+  if (variant === "route") {
+    return (
+      <svg viewBox="0 0 112 64" aria-hidden="true">
+        <circle className="ah-info-core" cx="25" cy="32" r="9" />
+        <path className="ah-info-route-line" d="M34 32h17c9 0 8-16 17-16h10M51 32h27M51 32c9 0 8 16 17 16h10" />
+        <path className="ah-info-route-arrow" d="m76 12 5 4-5 4M76 28l5 4-5 4M76 44l5 4-5 4" />
+        <circle className="ah-info-accent-fill" cx="89" cy="16" r="6" />
+        <circle className="ah-info-node" cx="89" cy="32" r="6" />
+        <circle className="ah-info-node" cx="89" cy="48" r="6" />
+        <path className="ah-info-check" d="m21 32 3 3 6-7" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 112 64" aria-hidden="true">
+      <ellipse className="ah-info-source" cx="25" cy="22" rx="12" ry="5" />
+      <path className="ah-info-source" d="M13 22v17c0 3 5 5 12 5s12-2 12-5V22M13 30c0 3 5 5 12 5s12-2 12-5" />
+      <path className="ah-info-route-line" d="M39 32h12" />
+      <path className="ah-info-route-arrow" d="m48 28 5 4-5 4" />
+      <path className="ah-info-document" d="M57 12h31l11 11v29H57z" />
+      <path className="ah-info-fold" d="M88 12v11h11" />
+      <path className="ah-info-document-line" d="M66 29h22M66 36h18M66 43h12" />
+      <circle className="ah-info-accent-fill" cx="91" cy="44" r="9" />
+      <path className="ah-info-check ah-info-check-light" d="m87 44 3 3 5-6" />
+    </svg>
+  );
+}
+
+function OwnershipIcon({ variant }: { variant: (typeof OWNERSHIP)[number]["code"] }) {
+  if (variant === "PD") return (
+    <svg viewBox="0 0 72 72" aria-hidden="true">
+      <rect x="10" y="12" width="45" height="39" rx="6" />
+      <path d="M10 23h45M21 12v39M27 31h19M27 38h13" />
+      <path className="accent" d="m45 43 15 5-7 3-3 7z" />
+    </svg>
+  );
+  if (variant === "FE") return (
+    <svg viewBox="0 0 72 72" aria-hidden="true">
+      <rect x="8" y="13" width="45" height="34" rx="6" />
+      <rect x="47" y="29" width="17" height="29" rx="4" />
+      <path d="M15 22h8M27 22h5M16 31l5 5-5 5M35 41h8" />
+      <path className="accent" d="M53 35h5M53 41h5M53 47h5" />
+    </svg>
+  );
+  if (variant === "AI") return (
+    <svg viewBox="0 0 72 72" aria-hidden="true">
+      <circle cx="16" cy="36" r="7" /><circle cx="55" cy="18" r="7" /><circle cx="55" cy="36" r="7" /><circle cx="55" cy="54" r="7" />
+      <path d="M23 36h11c8 0 7-18 14-18M34 36h14M34 36c8 0 7 18 14 18" />
+      <path className="accent" d="m12 36 3 3 6-7M52 18h6" />
+    </svg>
+  );
+  return (
+    <svg viewBox="0 0 72 72" aria-hidden="true">
+      <rect x="10" y="9" width="39" height="51" rx="6" />
+      <path d="M20 22h20M20 33h20M20 44h12" />
+      <circle className="accent-fill" cx="51" cy="48" r="13" />
+      <path className="check" d="m45 48 4 4 8-10" />
+    </svg>
+  );
+}
 
 export default function Home() {
   return (
-    <main>
-      <section id="overview" className="agero-hero">
-        <div className="hero-blueprint" aria-hidden="true" />
-        <PixelBlocks className="hero-pixel-tl" columns={4} pattern={[...FRAMER_HERO_PIXEL_PATTERN]} />
-        <PixelBlocks className="hero-pixel-br" columns={4} pattern={[...FRAMER_BOTTOM_PIXEL_PATTERN]} />
-        <div className="shell hero-shell">
-          <div className="hero-frame">
-            <Reveal className="hero-lockup">
-              <h1 className="hero-logo-free-title"><span>We build</span> <strong>proof driven</strong></h1>
-            </Reveal>
-            <div className="hero-arrow-rail" aria-hidden="true"><DottedArrows /><DottedArrows /><DottedArrows /></div>
-          </div>
-
-          <Reveal delay={0.1} className="hero-copy-block">
-            <p className="hero-sub">Provenance retrieves approved policy, verifies every generated claim, and knows when not to answer.</p>
-            <div className="hero-actions">
-              <Button asChild variant="ink-outline"><Link href="/#evidence">View the evidence</Link></Button>
-              <Button asChild variant="ink"><Link href="/demo"><span className="hero-cta-icon" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /></span>Run the live demo</Link></Button>
-            </div>
-            <p className="hero-trusted">Designed + built by Ariel Magalso · fictional workspace</p>
+    <main className="provenance-agero-home">
+      <section id="overview" className="ah-hero">
+        <div className="ah-shell">
+          <Reveal className="ah-trust-row">
+            <span className="ah-availability-dot" aria-hidden="true" />
+            <span>Ariel Magalso · Manila, Philippines · Open to new roles</span>
           </Reveal>
-          </div>
-      </section>
 
-      <section aria-label="Built with" style={{ padding: "clamp(40px, 5vw, 64px) 0" }}>
-        <div className="shell">
-          <p className="label-mono" style={{ textAlign: "center", marginBottom: "20px" }}><span className="slash">//</span>Built with</p>
-          <div className="static-row">
-            {STACK_MARQUEE.map((item, i) => (
-              <span className="marquee-item" key={i}><span className="marquee-dot" /><b>{item}</b></span>
-            ))}
-          </div>
-        </div>
-      </section>
+          <Reveal delay={0.05} className="ah-hero-lockup">
+            <h1>
+              <span>Product designer <span className="ah-inline-visual ah-inline-evidence"><InlineInfographic variant="verify" /></span></span>
+              <span className="ah-muted">+ AI engineer <span className="ah-inline-visual ah-inline-route"><InlineInfographic variant="route" /></span></span>
+              <span>building proof <span className="ah-inline-visual ah-inline-score"><InlineInfographic variant="evidence" /></span></span>
+            </h1>
+          </Reveal>
 
-      <section className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="01" eyebrow="About this project" title="Great automation is more than answers, it's proof" />
-          <Reveal delay={0.08}>
-            <div className="stats-panel">
-              <div className="stats-rows">
-                <p>The results are committed to the repo. Each number is reproducible.</p>
-                <div className="stat-row">
-                  <span className="stat-icon-tile">45</span>
-                  <div className="stat-row-body"><strong><CountUp value={45} suffix="/45" /></strong><span>Development-set cases passing</span></div>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-icon-tile">52</span>
-                  <div className="stat-row-body"><strong><CountUp value={52} /></strong><span>Indexed policy passages</span></div>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-icon-tile">%</span>
-                  <div className="stat-row-body"><strong><CountUp value={100} suffix="%" /></strong><span>Route accuracy across the committed dev set</span></div>
-                </div>
-              </div>
-              <div className="stats-visual"><StatsArt /></div>
+          <Reveal delay={0.1} className="ah-hero-copy">
+            <p>I design and build accountable AI products from product framing to production workflow. Provenance is the working proof.</p>
+            <div className="ah-hero-actions">
+              <a className="ah-pill ah-pill-dark" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel <ArrowIcon /></a>
+              <Link className="ah-pill ah-pill-light" href="#work">View the case study <ArrowIcon /></Link>
             </div>
+            <div className="ah-hero-meta"><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio</a><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
           </Reveal>
         </div>
       </section>
 
-      <section id="engineering" className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="02" eyebrow="Services" title="We build evidence-bound AI systems" />
-          <div className="service-grid">
-            {SERVICES.map((s, i) => (
-              <Reveal key={s.label} className={`service-card${i === 0 ? " service-card-featured" : ""}`}>
-                <span className="service-card-chip">{s.label}</span>
-                <p className="service-desc">{s.description}</p>
-                <span className="service-num-giant" aria-hidden="true">{s.num}</span>
-                <ul>{s.items.map((item) => <li key={item}>{item}</li>)}</ul>
-                {i === 0 && <Link className="service-arrow" href="/architecture" aria-label="Read the architecture">→</Link>}
-              </Reveal>
-            ))}
-          </div>
+      <section className="ah-marquee" aria-label="Capabilities">
+        <div className="ah-marquee-track">
+          {[...CAPABILITIES, ...CAPABILITIES].map((item, index) => <span key={`${item}-${index}`}>{item}<i /></span>)}
         </div>
       </section>
 
-      <section className="editorial-section">
-        <div className="shell">
+      <section id="ownership" className="ah-manifesto">
+        <div className="ah-shell">
+          <p className="ah-parenthetical">( What I owned )</p>
           <Reveal>
-            <p className="editorial-section-kicker" style={{ justifyContent: "center", display: "flex" }}><span /> <span>Our vision</span></p>
-            <p className="vision-statement">
-              Every answer we ship starts <span className="vision-chip" aria-hidden="true">0.96</span> with a deep understanding of evidence
-            </p>
-            <p className="vision-copy">Provenance is a solo AI-automation case study focused on verification, not just generation. The pipeline doesn&apos;t just look grounded — it proves it on every run.</p>
+            <p className="ah-statement">I took Provenance from product framing to a deployed, inspectable AI workflow.</p>
           </Reveal>
-          <Reveal delay={0.1}>
-            <div className="case-panel" style={{ marginTop: "clamp(32px, 4vw, 48px)" }}>
-              <div className="case-grid">
-                <div className="case-overlay">
-                  <h3>Routine pricing question, fully cited</h3>
-                  <p>A Dedicated Desk pricing question retrieves the right passage, drafts an answer, and clears both groundedness gates before it&apos;s allowed to send.</p>
-                </div>
-                <div className="case-flow">
-                  <p className="case-flow-question">Does a Dedicated Desk membership include after-hours access?</p>
-                  <span className="case-flow-hop">matches</span>
-                  <p className="case-flow-match">PRICING-03 <b>· 0.91 sim</b></p>
-                  <span className="case-flow-hop">gates</span>
-                  <div className="case-flow-gate"><strong>0.96</strong><span>passes → ships</span></div>
-                </div>
+          <div className="ah-capability-list">
+            {OWNERSHIP.map((item, index) => (
+              <div className="ah-capability-item" key={item.code}>
+                <div className="ah-capability-top"><span>0{index + 1}</span><i className="ah-capability-icon"><OwnershipIcon variant={item.code} /></i></div>
+                <strong>{item.title}</strong>
+                <p>{item.copy}</p>
               </div>
-              <div className="case-metrics">
-                <div><strong>0.96</strong><span>Mean groundedness</span></div>
-                <div><strong>1 source</strong><span>Citation resolved</span></div>
-                <div><strong>&lt;3s</strong><span>Pipeline latency</span></div>
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section id="process" className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="04" eyebrow="Process" title="Combine retrieval with verification" copy={<p>Every stage is designed to narrow what the system is allowed to do.</p>} />
-          <div className="process-stack">
-            {PROCESS.map(([index, title, copy], i) => {
-              const Art = PROCESS_ART[i];
-              return (
-                <Reveal key={index} className="process-card">
-                  <div className="process-visual">
-                    <Art />
-                  </div>
-                  <div className="process-card-foot">
-                    <span>//{index}</span>
-                    <div><h3>{title}</h3><p>{copy}</p></div>
-                  </div>
-                </Reveal>
-              );
-            })}
+            ))}
           </div>
         </div>
       </section>
 
-      <section aria-label="Verified auditable grounded" style={{ padding: "clamp(32px, 4vw, 48px) 0" }}>
-        <div className="word-band" aria-hidden="true">
-          <span className="word">VERIFIED</span>
-          <DottedArrows />
-          <span className="word">AUDITABLE</span>
-          <DottedArrows />
-          <span className="word">GROUNDED</span>
-        </div>
-      </section>
-      <div className="hatch-divider" aria-hidden="true" />
-
-      <section className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="05" eyebrow="The difference" title="Why this is not a typical AI demo" center />
-          <div className="comparison-wrap">
-            <div className="comparison-table">
-              <Reveal className="comparison-col comparison-col-other">
-                <h3>Typical AI demos</h3>
-                <ul>{COMPARISON.other.map((item) => <li key={item}>{item}</li>)}</ul>
-              </Reveal>
-              <Reveal delay={0.08} className="comparison-col comparison-col-us">
-                <h3 className="comparison-brand">Provenance</h3>
-                <ul>{COMPARISON.us.map((item) => <li key={item}>{item}</li>)}</ul>
-              </Reveal>
-            </div>
+      <section id="work" className="ah-proof-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( Committed evidence )</p><h2>Proof, not promises</h2></div>
+            <p>Every number below is reproducible from the repository and every outcome can be inspected in the live workflow.</p>
           </div>
-        </div>
-      </section>
 
-      <section id="build" className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="06" eyebrow="The build, end to end" title="every role on this project, covered solo." />
-          <div className="build-map">
-            <Reveal className="build-owner-card">
-              <div className="build-owner-mark" aria-hidden="true">AM</div>
-              <div>
-                <span className="build-owner-label">One accountable builder</span>
-                <h3>Ariel Magalso</h3>
-                <p>From product framing to production UI, retrieval, verification, evaluation, and operator handoff.</p>
-              </div>
-              <dl className="build-owner-stats">
-                <div><dt>Disciplines</dt><dd>07</dd></div>
-                <div><dt>Core product</dt><dd>01</dd></div>
-              </dl>
-            </Reveal>
-            <div className="roles-grid">
-              {ROLES.map(([index, phase, role, initials]) => (
-                <Reveal key={role} className="role-card">
-                  <span className="role-card-index">//{index}</span>
-                  <span className="role-card-avatar">{initials}</span>
-                  <div><span className="role-card-phase">{phase}</span><strong>{role}</strong></div>
+          <div className="ah-proof-grid">
+            <div className="ah-stat-stack">
+              {PROOF_POINTS.map(([value, suffix, label]) => (
+                <Reveal className="ah-stat" key={label}>
+                  <strong><CountUp value={value} suffix={suffix} /></strong>
+                  <span>{label}</span>
                 </Reveal>
               ))}
             </div>
+            <Reveal delay={0.08} className="ah-quote-card">
+              <span className="ah-quote-index">01 / 01</span>
+              <blockquote>“Every committed case reached the correct route — answer, review, or block.”</blockquote>
+              <div><strong>Provenance evaluation suite</strong><span>Committed project evidence</span></div>
+              <Link href="/evals" aria-label="Open evaluation evidence"><ArrowIcon /></Link>
+            </Reveal>
           </div>
-          <Reveal delay={0.1} className="frame-panel" style={{ marginTop: "16px", padding: "clamp(24px, 3vw, 32px)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "20px" }}>
-            <div>
-              <p className="text-heading-sm">Ariel is searching for a team.</p>
-              <p className="text-body-sm" style={{ color: "var(--muted)", marginTop: "6px" }}>Open to product design and full-stack AI engineering roles.</p>
-            </div>
-            <Button asChild variant="ink"><a href="mailto:ariel.r.magalso@gmail.com">Contact Ariel →</a></Button>
-          </Reveal>
         </div>
       </section>
 
-      <section id="evidence" className="editorial-section surface-section">
-        <div className="shell">
-          <SectionIntro index="07" eyebrow="Evidence timeline" title="AI solutions that stand on evidence." />
-          <div className="evidence-timeline">
-            {EVIDENCE_TIMELINE.map(([date, title, cta, href]) => (
-              <Link className="evidence-timeline-row" href={href} key={title}>
-                <span>{date}</span><strong>{title}</strong><span>{cta}</span>
+      <section id="case-study" className="ah-work-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading ah-section-heading-light">
+            <div><p className="ah-parenthetical">( Live product )</p><h2>Three responsible outcomes</h2></div>
+            <p>One evidence pipeline handles a routine answer, an unsupported request, and an adversarial instruction.</p>
+          </div>
+
+          <div className="ah-work-list">
+            {GUIDED_SCENARIOS.map((scenario, index) => (
+              <Reveal key={scenario.id} className="ah-work-card">
+                <div className="ah-work-copy">
+                  <span className="ah-work-number">0{index + 1} / 03</span>
+                  <OutcomeMark outcome={scenario.expectedOutcome} compact />
+                  <h3>{scenario.label}</h3>
+                  <p>{scenario.question.replace("Meridian Nine", "the workspace")}</p>
+                  <Link className="ah-text-link" href="/demo">Run this scenario <ArrowIcon /></Link>
+                </div>
+                <div className={`ah-route-visual ah-route-${scenario.expectedOutcome}`} aria-hidden="true">
+                  <span>Question</span><i /><span>Evidence</span><i /><span>{scenario.expectedOutcome === "approved" ? "Answer" : scenario.expectedOutcome === "human_review" ? "Review" : "Block"}</span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="engineering" className="ah-services-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( What it does )</p><h2>Built to know its limits</h2></div>
+            <Link className="ah-pill ah-pill-light" href="/architecture">Read the architecture <ArrowIcon /></Link>
+          </div>
+
+          <div className="ah-service-layout">
+            <div className="ah-service-list">
+              {SERVICES.map((service) => (
+                <Reveal className="ah-service-row" key={service.number}>
+                  <span>{service.number}</span>
+                  <div><h3>{service.title}</h3><p>{service.copy}</p><ul>{service.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul></div>
+                </Reveal>
+              ))}
+            </div>
+            <div className="ah-process-art" aria-label="Pipeline process illustrations">
+              <div className="ah-process-art-header">
+                <div><span>Completed run</span><strong>One answer, fully inspectable</strong></div>
+                <i aria-hidden="true" />
+                <small>run_7F2A</small>
+              </div>
+              <div className="ah-proof-packet">
+                <div className="ah-proof-question">
+                  <span>Incoming question</span>
+                  <p>Does a Dedicated Desk membership include after-hours access?</p>
+                </div>
+                <div className="ah-proof-signal" aria-label="Run status">
+                  <span><i /> screened</span><b>→</b><span><i /> grounded</span><b>→</b><span><i /> approved</span>
+                </div>
+                <div className="ah-proof-evidence-card">
+                  <div className="ah-proof-document" aria-hidden="true"><i /><i /><i /><i /></div>
+                  <div><span>Top source match</span><strong>PRICING-03</strong><small>Approved policy · similarity 0.91</small></div>
+                  <em>52 passages searched</em>
+                </div>
+                <div className="ah-proof-result-grid">
+                  <div className="ah-proof-score"><span>Groundedness</span><strong>0.96</strong><small>Above 0.70 threshold</small></div>
+                  <div className="ah-proof-route"><span>Final route</span><strong>Answer</strong><small>3 citations attached</small></div>
+                </div>
+                <div className="ah-proof-audit"><span>✓ Evidence visible at every decision</span><small>audit/7F2A.json</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about-ariel" className="ah-builder-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( The builder )</p><h2>Meet Ariel</h2></div>
+          </div>
+          <div className="ah-builder-grid">
+            <Reveal className="ah-builder-portrait">
+              <div className="ah-builder-card-top"><span>ARIEL MAGALSO</span><i>AVAILABLE · 2026</i></div>
+              <div className="ah-builder-identity">
+                <div className="ah-builder-avatar" aria-hidden="true"><span>AM</span><i /></div>
+                <p>Designing AI products that can explain themselves.</p>
+                <small>Manila, Philippines · UTC+8</small>
+              </div>
+              <div className="ah-builder-metrics" aria-label="Project proof points">
+                <div><strong>01</strong><span>End-to-end<br />product</span></div>
+                <div><strong>45</strong><span>Committed<br />eval cases</span></div>
+                <div><strong>08</strong><span>Inspectible<br />stages</span></div>
+              </div>
+              <div className="ah-builder-disciplines"><span>Product design</span><span>Full-stack AI</span><span>Responsible systems</span></div>
+              <div className="ah-builder-signal" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+            </Reveal>
+            <Reveal delay={0.08} className="ah-builder-copy">
+              <p className="ah-builder-role">Product designer + AI engineer</p>
+              <h3>One accountable builder, from product framing to production workflow.</h3>
+              <p>Ariel designed and built the interface, retrieval pipeline, verification gates, evaluation suite, and human-review handoff behind Provenance.</p>
+              <div className="ah-builder-links">
+                <a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio <ArrowIcon /></a>
+                <a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">Source <ArrowIcon /></a>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section id="evidence" className="ah-evidence-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( Project archive )</p><h2>Evidence, organized</h2></div>
+          </div>
+          <div className="ah-evidence-list">
+            {EVIDENCE.map(([number, title, copy, href]) => (
+              <Link href={href} className="ah-evidence-row" key={number}>
+                <span>{number}</span><strong>{title}</strong><p>{copy}</p><ArrowIcon />
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="editorial-section">
-        <div className="shell">
-          <Reveal className="evidence-quote-card">
-            <blockquote>&ldquo;Every committed case reached the correct route — answer, review, or block.&rdquo;</blockquote>
-            <cite>From the project&apos;s committed evidence — <Link href="/evals">evals/results.md</Link></cite>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="editorial-section surface-section">
-        <div className="shell">
-          <SectionIntro index="08" eyebrow="Why choose this approach" title="built to help you trust the answer." />
-          <div className="why-choose-grid">
-            {WHY_CHOOSE.map(([title, copy]) => (
-              <Reveal key={title} className="why-choose-card">
-                <span>0{WHY_CHOOSE.findIndex(([t]) => t === title) + 1}</span>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </Reveal>
-            ))}
+      <section className="ah-review-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( Choose your depth )</p><h2>Review the project your way</h2></div>
           </div>
-        </div>
-      </section>
-
-      <section id="case-study" className="editorial-section">
-        <div className="shell">
-          <SectionIntro index="09" eyebrow="Recent work" title="one inbox. three responsible outcomes." copy={<p>The same live pipeline handles a routine answer, an unsupported request, and an adversarial instruction.</p>} />
-          <div className="work-panel-stack">
-            {GUIDED_SCENARIOS.map((scenario, index) => (
-              <Reveal delay={index * 0.08} key={scenario.id}>
-                <Link className="work-panel-full" href="/demo">
-                  <div className="work-panel-full-top">
-                    <div className="work-panel-full-head">
-                      <span className="work-panel-full-count">0{index + 1} / 03</span>
-                      <h3>{scenario.label}</h3>
-                    </div>
-                    <OutcomeMark outcome={scenario.expectedOutcome} compact />
-                  </div>
-
-                  <p className="work-panel-question">{scenario.question.replace("Meridian Nine", "the workspace")}</p>
-
-                  <div className="work-pipeline" aria-label={`Pipeline route: ${ROUTE_SHORT[scenario.expectedOutcome]}`}>
-                    {PIPELINE_STAGES.map((stage, stageIndex) => (
-                      <span className="work-pipeline-node" key={stage}>
-                        <span className={`work-pipeline-step${stageIndex >= STAGES_REACHED[scenario.expectedOutcome] ? " is-skipped" : ""}`}>{stage}</span>
-                        <span className="work-pipeline-sep" aria-hidden="true">›</span>
-                      </span>
-                    ))}
-                    <span className={`work-pipeline-step work-pipeline-final work-pipeline-final-${scenario.expectedOutcome}`}>
-                      {ROUTE_SHORT[scenario.expectedOutcome]}
-                    </span>
-                  </div>
-
-                  <div className="work-panel-foot">
-                    <div className="work-panel-facts">
-                      <span>{scenario.channel[0].toUpperCase() + scenario.channel.slice(1)}</span>
-                      <span>{scenario.category}</span>
-                      <span>{OUTCOME_LABEL[scenario.expectedOutcome]}</span>
-                    </div>
-                    <b>Run this scenario →</b>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="editorial-section surface-section">
-        <div className="shell">
-          <SectionIntro index="10" eyebrow="Two ways to review" title="90 seconds, or the deep dive." />
-          <div className="review-grid">
-            <Reveal className="review-card review-card-light">
-              <span className="review-card-time">Available now</span>
-              <h3>The 90-second tour</h3>
-              <ul>
-                <li>Run the routine-answer scenario</li>
-                <li>Watch the groundedness score gate the response</li>
-                <li>See a citation resolve to a real passage</li>
-                <li>Compare it against the blocked scenario</li>
-              </ul>
-              <Button asChild variant="ink"><Link href="/demo">Run the demo</Link></Button>
+          <div className="ah-review-grid">
+            <Reveal className="ah-review-card">
+              <span>Fast path</span><h3>90-second tour</h3><p>Run a scenario, watch the evidence gate, and inspect the final route.</p>
+              <ul><li>Live workflow</li><li>Visible citations</li><li>Three outcomes</li></ul>
+              <Link className="ah-pill ah-pill-dark" href="/demo">Start the tour <ArrowIcon /></Link>
             </Reveal>
-            <Reveal delay={0.08} className="review-card review-card-dark">
-              <span className="review-card-time">Available now</span>
-              <h3>The deep dive</h3>
-              <ul>
-                <li>Read all 8 architecture stages</li>
-                <li>Open the 45-case eval scorecard</li>
-                <li>Browse the full policy corpus</li>
-                <li>Review the source on GitHub</li>
-              </ul>
-              <Button asChild variant="ink-outline" style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff", background: "transparent" }}><Link href="/architecture">Read the architecture</Link></Button>
+            <Reveal delay={0.08} className="ah-review-card ah-review-card-accent">
+              <span>Deep path</span><h3>Full system review</h3><p>Open the architecture, committed results, policy corpus, and source.</p>
+              <ul><li>Eight stages</li><li>45 evaluation cases</li><li>Full audit model</li></ul>
+              <Link className="ah-pill ah-pill-light" href="/architecture">Read the system <ArrowIcon /></Link>
             </Reveal>
           </div>
         </div>
       </section>
 
-      <section id="recruiter-faq" className="editorial-section surface-section">
-        <div className="shell">
-          <SectionIntro index="11" eyebrow="Before you get started" title="the useful questions before you open the source." center ghost="FAQ" />
-          <div className="faq-centered">
-            <div className="faq-list">
-              {FAQ_ITEMS.map(([question, answer]) => (
-                <details className="faq-row" key={question}>
-                  <summary><span>{question}</span><b aria-hidden="true">+</b></summary>
-                  <p>{answer}</p>
-                </details>
-              ))}
-            </div>
+      <section className="ah-faq-section">
+        <div className="ah-shell ah-faq-grid">
+          <div><p className="ah-parenthetical">( Questions )</p><h2>Useful context, answered</h2><p>What to know before you open the source or run the live workflow.</p></div>
+          <div className="ah-faq-list">
+            {FAQ_ITEMS.map(([question, answer]) => (
+              <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="editorial-section">
-        <div className="shell">
-          <div className="lessons-strip">
-            <span><b>01 ·</b> Retrieval quality does not guarantee grounded output.</span>
-            <span><b>02 ·</b> Refusal is a successful outcome, not a failure state.</span>
-            <span><b>03 ·</b> Evaluation cases should model near-misses, not only typical questions.</span>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div className="shell">
-          <div className="contact-split">
-            <Reveal>
-              <p className="label-mono" style={{ marginBottom: "12px" }}><span className="slash">//</span>Let&apos;s connect</p>
-              <h2>Got a role in mind?</h2>
-              <p>I&apos;m designing and building accountable AI products, and I&apos;m open to product design and full-stack AI engineering roles.</p>
-              <div className="contact-split-actions">
-                <Button asChild variant="ink"><a href="mailto:ariel.r.magalso@gmail.com">Contact Ariel →</a></Button>
-                <Button asChild variant="ink-outline"><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio<ButtonArrow /></a></Button>
+      <section className="ah-contact-section">
+        <div className="ah-shell">
+          <Reveal className="ah-contact-card">
+            <div className="ah-contact-copy">
+              <p className="ah-parenthetical">( Let&apos;s connect )</p>
+              <h2>Need a product designer who can ship the AI?</h2>
+              <p>I bridge product framing, interface design, and full-stack AI engineering—then leave the system inspectable.</p>
+              <div className="ah-contact-actions">
+                <a className="ah-pill ah-pill-light" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel <ArrowIcon /></a>
+                <a className="ah-contact-text-link" href="/architecture">Review the build <ArrowIcon /></a>
               </div>
-            </Reveal>
-            <Reveal delay={0.1} className="contact-split-panel">
-              <FramePanel className="contact-frame-panel">
-                <dl>
-                  <div><dt>Email</dt><dd>ariel.r.magalso@gmail.com</dd></div>
-                  <div><dt>Based in</dt><dd>Manila, Philippines</dd></div>
-                  <div><dt>Availability</dt><dd>Open to new roles</dd></div>
-                </dl>
-              </FramePanel>
-            </Reveal>
-          </div>
+            </div>
+            <div className="ah-contact-profile">
+              <div className="ah-contact-status"><i aria-hidden="true" /><span>Available for new roles</span><small>2026</small></div>
+              <div className="ah-contact-role-card">
+                <small>Next role</small>
+                <h3>Product design<br /><span>× AI engineering</span></h3>
+                <p>For teams turning ambitious AI prototypes into trustworthy products.</p>
+              </div>
+              <div className="ah-contact-strengths" aria-label="Core strengths">
+                <div><i aria-hidden="true">01</i><span>Product strategy<br />and interaction</span></div>
+                <div><i aria-hidden="true">02</i><span>Full-stack AI<br />product delivery</span></div>
+                <div><i aria-hidden="true">03</i><span>Evaluation and<br />responsible systems</span></div>
+              </div>
+              <div className="ah-contact-details">
+                <div><small>Based in</small><strong>Manila, Philippines</strong></div>
+                <div><small>Work setup</small><strong>Remote-friendly · UTC+8</strong></div>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
     </main>

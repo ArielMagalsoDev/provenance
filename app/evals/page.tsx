@@ -19,7 +19,7 @@ export default function EvalsPage() {
   const content = existsSync(resultsPath) ? readFileSync(resultsPath, "utf-8") : null;
 
   return (
-    <main>
+    <main className="agero-inner-page">
       <EditorialHeader
         index="03"
         eyebrow="Evidence"

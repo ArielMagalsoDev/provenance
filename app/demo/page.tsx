@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function DemoPage() {
   return (
-    <main>
+    <main className="agero-inner-page">
       <EditorialHeader
         index="01"
         eyebrow="Live product"

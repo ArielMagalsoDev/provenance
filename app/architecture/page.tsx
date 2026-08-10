@@ -32,7 +32,7 @@ const THRESHOLDS = [
 
 export default function ArchitecturePage() {
   return (
-    <main>
+    <main className="agero-inner-page">
       <EditorialHeader
         index="02"
         eyebrow="Engineering"
