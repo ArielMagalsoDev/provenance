@@ -65,6 +65,10 @@ export function SiteNav() {
       <div className="site-nav">
         <div className="shell">
           <div className="site-nav-frame">
+            <i className="nav-handle nav-handle-tl" aria-hidden="true" />
+            <i className="nav-handle nav-handle-tr" aria-hidden="true" />
+            <i className="nav-handle nav-handle-bl" aria-hidden="true" />
+            <i className="nav-handle nav-handle-br" aria-hidden="true" />
             <div className="site-nav-inner">
               <nav className="nav-desktop" aria-label="Primary navigation" style={{ width: "100%", justifyContent: "space-between" }}>
                 <Link className="site-brand" href="/" aria-label="Provenance home" onClick={closeMenu}>Provenance</Link>

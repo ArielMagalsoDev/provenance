@@ -6,6 +6,7 @@ import { ButtonArrow } from "./components/ButtonArrow";
 import { CountUp } from "./components/CountUp";
 import { DottedArrows } from "./components/DottedArrows";
 import { FramePanel } from "./components/FramePanel";
+import { PixelBlocks } from "./components/PixelBlocks";
 import { PROCESS_ART, StatsArt } from "./components/ProcessArt";
 import { Reveal } from "./components/Reveal";
 import { OutcomeMark, SectionIntro } from "./components/Editorial";
@@ -16,6 +17,18 @@ export const metadata: Metadata = {
 };
 
 const STACK_MARQUEE = ["Next.js 16", "React 19", "Postgres", "pgvector", "Claude Haiku", "Supabase", "Vercel", "TypeScript"];
+
+const FRAMER_HERO_PIXEL_PATTERN = [
+  true, false, true, true,
+  false, true, false, false,
+  true, false, false, false,
+] as const;
+
+const FRAMER_BOTTOM_PIXEL_PATTERN = [
+  false, false, false, true,
+  false, false, true, false,
+  true, true, false, true,
+] as const;
 
 const ROUTE_SHORT = {
   approved: "Answered with citation",
@@ -92,13 +105,13 @@ const COMPARISON = {
 };
 
 const ROLES = [
-  ["Product design", "PD"],
-  ["Frontend engineering", "FE"],
-  ["Retrieval pipeline", "RP"],
-  ["Claim verification", "CV"],
-  ["Evaluation suite", "EV"],
-  ["Human-in-the-loop ops", "HL"],
-  ["Documentation", "DC"],
+  ["01", "Shape", "Product design", "PD"],
+  ["02", "Build", "Frontend engineering", "FE"],
+  ["03", "Ground", "Retrieval pipeline", "RP"],
+  ["04", "Verify", "Claim verification", "CV"],
+  ["05", "Measure", "Evaluation suite", "EV"],
+  ["06", "Operate", "Human-in-the-loop ops", "HL"],
+  ["07", "Explain", "Documentation", "DC"],
 ] as const;
 
 const EVIDENCE_TIMELINE = [
@@ -127,28 +140,26 @@ export default function Home() {
   return (
     <main>
       <section id="overview" className="agero-hero">
-        <div className="shell">
-          <div className="hero-content">
-            <Reveal>
-              <p className="hero-trusted">Designed + built by Ariel Magalso</p>
+        <div className="hero-blueprint" aria-hidden="true" />
+        <PixelBlocks className="hero-pixel-tl" columns={4} pattern={[...FRAMER_HERO_PIXEL_PATTERN]} />
+        <PixelBlocks className="hero-pixel-br" columns={4} pattern={[...FRAMER_BOTTOM_PIXEL_PATTERN]} />
+        <div className="shell hero-shell">
+          <div className="hero-frame">
+            <Reveal className="hero-lockup">
+              <h1 className="hero-logo-free-title"><span>We build</span> <strong>proof driven</strong></h1>
             </Reveal>
-
-            <Reveal delay={0.1}>
-              <h1 className="hero-stack">
-                <span className="hero-row hero-row-word">Reliable</span>
-                <span className="hero-row hero-row-word hero-row-muted">Automation</span>
-              </h1>
-              <p className="hero-sub">Provenance retrieves approved policy, verifies generated claims, and knows when not to answer — proof included.</p>
-              <div className="hero-chips" aria-label="Ariel Magalso's ownership">
-                <span>Product design</span><span>Full-stack</span><span>AI architecture</span><span>Evaluation</span>
-              </div>
-              <div className="hero-actions">
-                <Button asChild variant="ink"><Link href="/demo">Run the live demo</Link></Button>
-                <Button asChild variant="ink-outline"><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">View source<ButtonArrow /></a></Button>
-              </div>
-            </Reveal>
+            <div className="hero-arrow-rail" aria-hidden="true"><DottedArrows /><DottedArrows /><DottedArrows /></div>
           </div>
-        </div>
+
+          <Reveal delay={0.1} className="hero-copy-block">
+            <p className="hero-sub">Provenance retrieves approved policy, verifies every generated claim, and knows when not to answer.</p>
+            <div className="hero-actions">
+              <Button asChild variant="ink-outline"><Link href="/#evidence">View the evidence</Link></Button>
+              <Button asChild variant="ink"><Link href="/demo"><span className="hero-cta-icon" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /></span>Run the live demo</Link></Button>
+            </div>
+            <p className="hero-trusted">Designed + built by Ariel Magalso · fictional workspace</p>
+          </Reveal>
+          </div>
       </section>
 
       <section aria-label="Built with" style={{ padding: "clamp(40px, 5vw, 64px) 0" }}>
@@ -290,17 +301,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="editorial-section">
+      <section id="build" className="editorial-section">
         <div className="shell">
           <SectionIntro index="06" eyebrow="The build, end to end" title="every role on this project, covered solo." />
-          <div className="roles-grid">
-            {ROLES.map(([role, initials]) => (
-              <Reveal key={role} className="role-card">
-                <span className="role-card-avatar">{initials}</span>
-                <strong>{role}</strong>
-                <span>Owned by Ariel Magalso</span>
-              </Reveal>
-            ))}
+          <div className="build-map">
+            <Reveal className="build-owner-card">
+              <div className="build-owner-mark" aria-hidden="true">AM</div>
+              <div>
+                <span className="build-owner-label">One accountable builder</span>
+                <h3>Ariel Magalso</h3>
+                <p>From product framing to production UI, retrieval, verification, evaluation, and operator handoff.</p>
+              </div>
+              <dl className="build-owner-stats">
+                <div><dt>Disciplines</dt><dd>07</dd></div>
+                <div><dt>Core product</dt><dd>01</dd></div>
+              </dl>
+            </Reveal>
+            <div className="roles-grid">
+              {ROLES.map(([index, phase, role, initials]) => (
+                <Reveal key={role} className="role-card">
+                  <span className="role-card-index">//{index}</span>
+                  <span className="role-card-avatar">{initials}</span>
+                  <div><span className="role-card-phase">{phase}</span><strong>{role}</strong></div>
+                </Reveal>
+              ))}
+            </div>
           </div>
           <Reveal delay={0.1} className="frame-panel" style={{ marginTop: "16px", padding: "clamp(24px, 3vw, 32px)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "20px" }}>
             <div>
@@ -462,7 +487,7 @@ export default function Home() {
               </div>
             </Reveal>
             <Reveal delay={0.1} className="contact-split-panel">
-              <FramePanel>
+              <FramePanel className="contact-frame-panel">
                 <dl>
                   <div><dt>Email</dt><dd>ariel.r.magalso@gmail.com</dd></div>
                   <div><dt>Based in</dt><dd>Manila, Philippines</dd></div>

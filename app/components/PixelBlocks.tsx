@@ -3,9 +3,21 @@
 // `pattern` marks which of the 3x3 grid cells are filled (true) vs void.
 const DEFAULT_PATTERN = [true, true, false, true, true, true, false, true, false];
 
-export function PixelBlocks({ className = "", pattern = DEFAULT_PATTERN }: { className?: string; pattern?: boolean[] }) {
+export function PixelBlocks({
+  className = "",
+  pattern = DEFAULT_PATTERN,
+  columns = 3,
+}: {
+  className?: string;
+  pattern?: boolean[];
+  columns?: number;
+}) {
   return (
-    <span className={`pixel-blocks ${className}`} aria-hidden="true">
+    <span
+      className={`pixel-blocks ${className}`}
+      style={{ "--pixel-columns": columns } as React.CSSProperties}
+      aria-hidden="true"
+    >
       {pattern.map((filled, i) => (
         <span
           className={filled ? "" : "void"}

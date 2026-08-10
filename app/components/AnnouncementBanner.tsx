@@ -6,9 +6,9 @@ export function AnnouncementBanner() {
     <div className="announcement-banner">
       <DottedArrows direction="left" />
       <span>
-        Independent portfolio project <b>· fictional workspace · no customer data</b>
+        Available for <b>product + AI engineering roles</b>
       </span>
-      <Link href="/demo" style={{ color: "var(--primary)", flexShrink: 0 }}>Run the live demo →</Link>
+      <Link href="/demo" className="announcement-link">Run the live demo →</Link>
       <DottedArrows direction="right" />
     </div>
   );

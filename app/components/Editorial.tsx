@@ -1,6 +1,19 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Reveal } from "./Reveal";
+import { PixelBlocks } from "./PixelBlocks";
+
+const FRAMER_TOP_LEFT_MOTIF = [
+  true, false, true, true,
+  false, true, false, false,
+  true, false, false, false,
+] as const;
+
+const FRAMER_BOTTOM_RIGHT_MOTIF = [
+  false, false, false, true,
+  false, false, true, false,
+  true, true, false, true,
+] as const;
 
 type MetadataItem = {
   label: string;
@@ -24,28 +37,35 @@ export function EditorialHeader({
   actions?: ReactNode;
   ghost?: string;
 }) {
+  const pageKey = ghost?.toLowerCase() ?? "page";
+
   return (
-    <header className={`editorial-page-header shell${ghost ? " has-ghost" : ""}`}>
-      {ghost && <span className="ghost-heading page-ghost" aria-hidden="true">{ghost}</span>}
-      <Reveal>
-        <div className="editorial-page-kicker">
-          <span>//{index ?? "Case study"}</span>
-          <span>{eyebrow}</span>
-        </div>
-        <h1>{title}</h1>
-        <div className="editorial-page-intro">{intro}</div>
-        {metadata.length > 0 && (
-          <dl className="editorial-metadata">
-            {metadata.map((item) => (
-              <div key={item.label}>
-                <dt>{item.label}</dt>
-                <dd>{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {actions && <div className="editorial-header-actions">{actions}</div>}
-      </Reveal>
+    <header className={`editorial-page-header${ghost ? " has-ghost" : ""}`} data-page={pageKey}>
+      <div className="editorial-page-blueprint" aria-hidden="true" />
+      <PixelBlocks className="editorial-pixel editorial-pixel-left" columns={4} pattern={[...FRAMER_TOP_LEFT_MOTIF]} />
+      <PixelBlocks className="editorial-pixel editorial-pixel-right" columns={4} pattern={[...FRAMER_BOTTOM_RIGHT_MOTIF]} />
+      <div className="shell editorial-page-frame">
+        {ghost && <span className="ghost-heading page-ghost" aria-hidden="true">{ghost}</span>}
+        <Reveal>
+          <div className="editorial-page-kicker">
+            <span>//{index ?? "Case study"}</span>
+            <span>{eyebrow}</span>
+          </div>
+          <h1>{title}</h1>
+          <div className="editorial-page-intro">{intro}</div>
+          {metadata.length > 0 && (
+            <dl className="editorial-metadata">
+              {metadata.map((item) => (
+                <div key={item.label}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {actions && <div className="editorial-header-actions">{actions}</div>}
+        </Reveal>
+      </div>
     </header>
   );
 }
