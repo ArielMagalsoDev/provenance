@@ -29,7 +29,7 @@ export default function InboxPage() {
       />
       <AgentInbox showHeader={false} />
 
-      <section className="editorial-section">
+      <section className="editorial-section light-cta-section">
         <div className="shell">
           <div className="page-cta">
             <div className="page-cta-label">

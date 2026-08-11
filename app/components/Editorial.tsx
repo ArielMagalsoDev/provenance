@@ -20,6 +20,55 @@ type MetadataItem = {
   value: string;
 };
 
+const HERO_GRAPHICS = {
+  architecture: {
+    eyebrow: "Permission model",
+    title: "Eight guarded decisions",
+    stat: "8 stages",
+    nodes: ["Screen", "Classify", "Retrieve", "Generate", "Verify", "Route", "Notify", "Audit"],
+  },
+  evidence: {
+    eyebrow: "Evaluation signal",
+    title: "Every route is tested",
+    stat: "45 / 45",
+    nodes: ["Answer", "Review", "Block"],
+  },
+  corpus: {
+    eyebrow: "Source library",
+    title: "Approved knowledge only",
+    stat: "52 passages",
+    nodes: ["Pricing", "Access", "Liability", "Membership"],
+  },
+  inbox: {
+    eyebrow: "Human handoff",
+    title: "Judgment stays human",
+    stat: "3 routes",
+    nodes: ["Approve", "Dismiss", "Teach"],
+  },
+} as const;
+
+function EditorialHeroGraphic({ pageKey }: { pageKey: string }) {
+  const graphic = HERO_GRAPHICS[pageKey as keyof typeof HERO_GRAPHICS] ?? HERO_GRAPHICS.architecture;
+
+  return (
+    <Reveal className={`editorial-hero-graphic editorial-hero-graphic-${pageKey}`}>
+      <div className="editorial-graphic-head">
+        <div><span>{graphic.eyebrow}</span><strong>{graphic.title}</strong></div>
+        <small><i /> Live system</small>
+      </div>
+      <div className="editorial-graphic-stage">
+        <div className="editorial-graphic-score"><span>System signal</span><strong>{graphic.stat}</strong><small>inspectable at every step</small></div>
+        <ol>
+          {graphic.nodes.map((node, index) => (
+            <li key={node}><span>{String(index + 1).padStart(2, "0")}</span><strong>{node}</strong><i aria-hidden="true">→</i></li>
+          ))}
+        </ol>
+      </div>
+      <div className="editorial-graphic-footer"><span><i /> Evidence attached</span><small>PROVENANCE / {pageKey.toUpperCase()}</small></div>
+    </Reveal>
+  );
+}
+
 export function EditorialHeader({
   eyebrow,
   index,
@@ -44,9 +93,9 @@ export function EditorialHeader({
       <div className="editorial-page-blueprint" aria-hidden="true" />
       <PixelBlocks className="editorial-pixel editorial-pixel-left" columns={4} pattern={[...FRAMER_TOP_LEFT_MOTIF]} />
       <PixelBlocks className="editorial-pixel editorial-pixel-right" columns={4} pattern={[...FRAMER_BOTTOM_RIGHT_MOTIF]} />
-      <div className="shell editorial-page-frame">
+      <div className="shell editorial-page-frame" data-page={pageKey}>
         {ghost && <span className="ghost-heading page-ghost" aria-hidden="true">{ghost}</span>}
-        <Reveal>
+        <Reveal className="editorial-page-copy">
           <div className="editorial-page-kicker">
             <span>//{index ?? "Case study"}</span>
             <span>{eyebrow}</span>
@@ -65,6 +114,7 @@ export function EditorialHeader({
           )}
           {actions && <div className="editorial-header-actions">{actions}</div>}
         </Reveal>
+        <EditorialHeroGraphic pageKey={pageKey} />
       </div>
     </header>
   );

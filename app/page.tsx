@@ -84,7 +84,7 @@ function ArrowIcon() {
   );
 }
 
-function InlineInfographic({ variant }: { variant: "verify" | "route" | "evidence" }) {
+function InlineInfographic({ variant }: { variant: "verify" | "route" | "evidence" | "handoff" }) {
   if (variant === "verify") {
     return (
       <svg viewBox="0 0 112 64" aria-hidden="true">
@@ -113,6 +113,21 @@ function InlineInfographic({ variant }: { variant: "verify" | "route" | "evidenc
     );
   }
 
+  if (variant === "handoff") {
+    return (
+      <svg viewBox="0 0 112 64" aria-hidden="true">
+        <rect className="ah-info-inbox" x="12" y="13" width="46" height="38" rx="7" />
+        <path className="ah-info-inbox-line" d="M20 23h28M20 31h20M20 39h13" />
+        <circle className="ah-info-accent-fill" cx="51" cy="19" r="7" />
+        <path className="ah-info-route-line" d="M61 32h10" />
+        <path className="ah-info-route-arrow" d="m68 28 5 4-5 4" />
+        <circle className="ah-info-person-head" cx="88" cy="23" r="8" />
+        <path className="ah-info-person-body" d="M74 49c1-11 6-17 14-17s13 6 14 17" />
+        <path className="ah-info-check" d="m84 23 3 3 6-7" />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 112 64" aria-hidden="true">
       <ellipse className="ah-info-source" cx="25" cy="22" rx="12" ry="5" />
@@ -124,6 +139,40 @@ function InlineInfographic({ variant }: { variant: "verify" | "route" | "evidenc
       <path className="ah-info-document-line" d="M66 29h22M66 36h18M66 43h12" />
       <circle className="ah-info-accent-fill" cx="91" cy="44" r="9" />
       <path className="ah-info-check ah-info-check-light" d="m87 44 3 3 5-6" />
+    </svg>
+  );
+}
+
+function FastPathIcon({ variant }: { variant: "ask" | "verify" | "route" }) {
+  if (variant === "ask") {
+    return (
+      <svg className="ah-fast-path-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <path className="ah-fast-icon-panel" d="M10 11h36v27H27l-9 7v-7h-8z" />
+        <path className="ah-fast-icon-line" d="M18 20h20M18 27h13" />
+        <circle className="ah-fast-icon-accent" cx="40" cy="36" r="7" />
+        <path className="ah-fast-icon-check" d="m37 36 2 2 4-5" />
+      </svg>
+    );
+  }
+
+  if (variant === "verify") {
+    return (
+      <svg className="ah-fast-path-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <circle className="ah-fast-icon-orbit" cx="28" cy="28" r="20" />
+        <path className="ah-fast-icon-shield" d="M28 13 40 18v10c0 8-5 13-12 16-7-3-12-8-12-16V18z" />
+        <path className="ah-fast-icon-check" d="m22 28 4 4 9-10" />
+        <circle className="ah-fast-icon-accent" cx="43" cy="15" r="5" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="ah-fast-path-icon" viewBox="0 0 56 56" aria-hidden="true">
+      <circle className="ah-fast-icon-source" cx="12" cy="28" r="6" />
+      <path className="ah-fast-icon-branch" d="M18 28h8c7 0 6-14 13-14h4M26 28h17M26 28c7 0 6 14 13 14h4" />
+      <circle className="ah-fast-icon-accent" cx="46" cy="14" r="6" />
+      <circle className="ah-fast-icon-node" cx="46" cy="28" r="6" />
+      <circle className="ah-fast-icon-node" cx="46" cy="42" r="6" />
     </svg>
   );
 }
@@ -158,6 +207,28 @@ function OwnershipIcon({ variant }: { variant: (typeof OWNERSHIP)[number]["code"
       <circle className="accent-fill" cx="51" cy="48" r="13" />
       <path className="check" d="m45 48 4 4 8-10" />
     </svg>
+  );
+}
+
+function RouteInfographic({ outcome, index }: { outcome: string; index: number }) {
+  const result = outcome === "approved"
+    ? { label: "Answer", detail: "Citations attached", mark: "✓" }
+    : outcome === "human_review"
+      ? { label: "Review", detail: "Operator judgment", mark: "!" }
+      : { label: "Block", detail: "Stopped safely", mark: "×" };
+
+  return (
+    <div className={`ah-route-visual ah-route-${outcome}`} aria-hidden="true">
+      <div className="ah-route-dashboard-head"><span>Decision path</span><strong>0{index + 1} / 03</strong></div>
+      <div className="ah-route-track">
+        <div className="ah-route-node"><span className="ah-route-glyph">?</span><strong>Question</strong><small>Intent screened</small></div>
+        <i className="ah-route-connector"><b /></i>
+        <div className="ah-route-node"><span className="ah-route-glyph ah-route-source"><i /><i /><i /></span><strong>Evidence</strong><small>Source matched</small></div>
+        <i className="ah-route-connector"><b /></i>
+        <div className="ah-route-node ah-route-result"><span className="ah-route-glyph">{result.mark}</span><strong>{result.label}</strong><small>{result.detail}</small></div>
+      </div>
+      <div className="ah-route-dashboard-foot"><span><i /> Evidence visible</span><small>route / 0{index + 1}</small></div>
+    </div>
   );
 }
 
@@ -257,9 +328,7 @@ export default function Home() {
                   <p>{scenario.question.replace("Meridian Nine", "the workspace")}</p>
                   <Link className="ah-text-link" href="/demo">Run this scenario <ArrowIcon /></Link>
                 </div>
-                <div className={`ah-route-visual ah-route-${scenario.expectedOutcome}`} aria-hidden="true">
-                  <span>Question</span><i /><span>Evidence</span><i /><span>{scenario.expectedOutcome === "approved" ? "Answer" : scenario.expectedOutcome === "human_review" ? "Review" : "Block"}</span>
-                </div>
+                <RouteInfographic outcome={scenario.expectedOutcome} index={index} />
               </Reveal>
             ))}
           </div>
@@ -350,11 +419,16 @@ export default function Home() {
         <div className="ah-shell">
           <div className="ah-section-heading">
             <div><p className="ah-parenthetical">( Project archive )</p><h2>Evidence, organized</h2></div>
+            <p>Open the artifacts behind the product—from approved knowledge to the human-review handoff.</p>
           </div>
           <div className="ah-evidence-list">
-            {EVIDENCE.map(([number, title, copy, href]) => (
+            {EVIDENCE.map(([number, title, copy, href], index) => (
               <Link href={href} className="ah-evidence-row" key={number}>
-                <span>{number}</span><strong>{title}</strong><p>{copy}</p><ArrowIcon />
+                <span className="ah-evidence-number">{number}</span>
+                <span className="ah-evidence-icon" aria-hidden="true"><InlineInfographic variant={index === 0 ? "evidence" : index === 1 ? "route" : index === 2 ? "verify" : "handoff"} /></span>
+                <span className="ah-evidence-copy"><strong>{title}</strong><p>{copy}</p></span>
+                <span className="ah-evidence-meta">{["52 passages", "8 stages", "45 cases", "Live queue"][index]}</span>
+                <ArrowIcon />
               </Link>
             ))}
           </div>
@@ -368,14 +442,22 @@ export default function Home() {
           </div>
           <div className="ah-review-grid">
             <Reveal className="ah-review-card">
-              <span>Fast path</span><h3>90-second tour</h3><p>Run a scenario, watch the evidence gate, and inspect the final route.</p>
-              <ul><li>Live workflow</li><li>Visible citations</li><li>Three outcomes</li></ul>
-              <Link className="ah-pill ah-pill-dark" href="/demo">Start the tour <ArrowIcon /></Link>
+              <div className="ah-review-card-top"><span>Fast path</span><strong>01 / 02</strong></div>
+              <div className="ah-review-visual ah-review-visual-fast" aria-hidden="true">
+                <i><span>01</span><FastPathIcon variant="ask" /><small>Ask</small></i><b>→</b>
+                <i><span>02</span><FastPathIcon variant="verify" /><small>Verify</small></i><b>→</b>
+                <i><span>03</span><FastPathIcon variant="route" /><small>Route</small></i>
+              </div>
+              <div className="ah-review-card-copy"><h3>90-second tour</h3><p>Run a scenario, watch the evidence gate, and inspect the final route.</p>
+                <ul><li>Live workflow</li><li>Visible citations</li><li>Three outcomes</li></ul>
+                <Link className="ah-pill ah-pill-dark" href="/demo">Start the tour <ArrowIcon /></Link></div>
             </Reveal>
             <Reveal delay={0.08} className="ah-review-card ah-review-card-accent">
-              <span>Deep path</span><h3>Full system review</h3><p>Open the architecture, committed results, policy corpus, and source.</p>
-              <ul><li>Eight stages</li><li>45 evaluation cases</li><li>Full audit model</li></ul>
-              <Link className="ah-pill ah-pill-light" href="/architecture">Read the system <ArrowIcon /></Link>
+              <div className="ah-review-card-top"><span>Deep path</span><strong>02 / 02</strong></div>
+              <div className="ah-review-visual ah-review-visual-deep" aria-hidden="true"><i>Architecture</i><i>Evaluations</i><i>Corpus</i><i>Source</i></div>
+              <div className="ah-review-card-copy"><h3>Full system review</h3><p>Open the architecture, committed results, policy corpus, and source.</p>
+                <ul><li>Eight stages</li><li>45 evaluation cases</li><li>Full audit model</li></ul>
+                <Link className="ah-pill ah-pill-light" href="/architecture">Read the system <ArrowIcon /></Link></div>
             </Reveal>
           </div>
         </div>
@@ -383,7 +465,7 @@ export default function Home() {
 
       <section className="ah-faq-section">
         <div className="ah-shell ah-faq-grid">
-          <div><p className="ah-parenthetical">( Questions )</p><h2>Useful context, answered</h2><p>What to know before you open the source or run the live workflow.</p></div>
+          <div className="ah-faq-intro"><p className="ah-parenthetical">( Questions )</p><h2>Useful context, answered</h2><p>What to know before you open the source or run the live workflow.</p><div className="ah-faq-signal"><strong>04</strong><span>Direct answers<br />for reviewers</span><i>✓</i></div></div>
           <div className="ah-faq-list">
             {FAQ_ITEMS.map(([question, answer]) => (
               <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>

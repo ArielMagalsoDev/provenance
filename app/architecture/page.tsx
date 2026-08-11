@@ -72,7 +72,7 @@ export default function ArchitecturePage() {
         </div>
       </section>
 
-      <section className="editorial-section surface-section">
+      <section className="editorial-section surface-section decision-gates-section">
         <div className="shell">
           <div className="compact-section-heading"><span>09 / Decision gates</span><h2>thresholds turn model confidence into an operational route.</h2></div>
           <ArchiveTable label="Decision gates" columns={["Gate", "Failure condition", "Route"]} rows={THRESHOLDS.map((row) => [...row])} />
@@ -85,14 +85,22 @@ export default function ArchitecturePage() {
         </div>
       </section>
 
-      <section className="editorial-section">
+      <section className="editorial-section light-cta-section">
         <div className="shell">
-          <div className="page-cta">
-            <div className="page-cta-label">
-              <span className="kicker-square" aria-hidden="true" />
+          <div className="page-cta architecture-live-cta">
+            <div className="architecture-live-copy">
+              <span>Live decision preview</span>
               <h2>See it decide something live.</h2>
+              <p>Submit a support question and watch the system screen, retrieve, verify, and select a responsible route.</p>
+              <Button asChild variant="ink"><Link href="/demo">Run the demo <b aria-hidden="true">↗</b></Link></Button>
             </div>
-            <Button asChild variant="ink"><Link href="/demo">Run the demo →</Link></Button>
+            <div className="architecture-live-art" aria-label="Question routes through evidence to an answer, review, or block decision">
+              <div className="architecture-live-art-head"><span>Decision trace</span><small><i /> Ready</small></div>
+              <div className="architecture-live-question"><small>Incoming question</small><strong>Does the policy support this answer?</strong></div>
+              <div className="architecture-live-path"><span>Screen</span><i>→</i><span>Retrieve</span><i>→</i><span>Verify</span></div>
+              <div className="architecture-live-routes"><span className="is-answer"><i />Answer</span><span><i />Review</span><span><i />Block</span></div>
+              <div className="architecture-live-proof"><span>0.96</span><small>Groundedness score</small><b>3 citations attached</b></div>
+            </div>
           </div>
         </div>
       </section>

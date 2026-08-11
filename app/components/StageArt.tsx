@@ -24,19 +24,55 @@ function Tag({ x, y, w, label, fill = INK, textFill = LIME }: { x: number; y: nu
 export function StageIngestArt() {
   return (
     <svg viewBox="0 0 240 140" role="img" aria-label="A markdown policy document is chunked, embedded, and upserted into a versioned Postgres table">
-      <rect x={10} y={16} width={54} height={68} rx={6} fill="#ffffff" stroke={LINE} />
-      <path d="M20 32h34M20 42h34M20 52h22" stroke={LINE} strokeWidth="3" strokeLinecap="round" />
-      <path d="M72 50h20" stroke={LINE} strokeWidth="1.5" strokeDasharray="3 3" />
-      <rect x={96} y={20} width={26} height={22} rx={4} fill={BAR} />
-      <rect x={96} y={46} width={26} height={22} rx={4} fill={BAR} />
-      <rect x={96} y={72} width={26} height={22} rx={4} fill={BAR} />
-      <path d="M126 32h16M126 57h16M126 83h16" stroke={LINE} strokeWidth="1.5" strokeDasharray="3 3" />
-      <ellipse cx={190} cy={40} rx={38} ry={13} fill={INK} />
-      <rect x={152} y={40} width={76} height={54} fill={INK} />
-      <ellipse cx={190} cy={94} rx={38} ry={13} fill={INK} />
-      <ellipse cx={190} cy={40} rx={38} ry={13} fill="none" stroke={LIME} strokeWidth="1.5" />
-      <text x={190} y={71} textAnchor="middle" fontFamily="var(--font-display), monospace" fontSize="9" letterSpacing="0.5" fill={LIME}>POSTGRES</text>
-      <Tag x={152} y={110} w={76} label="CORPUS V.12" />
+      <defs>
+        <linearGradient id="ingestPanel" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#171717" />
+          <stop offset="1" stopColor="#272727" />
+        </linearGradient>
+      </defs>
+      <rect x="5" y="5" width="230" height="130" rx="14" fill="url(#ingestPanel)" />
+      <text x="18" y="21" fontFamily="var(--font-display), monospace" fontSize="7" letterSpacing="1" fill="#ff4d00">INGEST PIPELINE</text>
+      <text x="222" y="21" textAnchor="end" fontFamily="var(--font-display), monospace" fontSize="6" fill="#777">RUN 12F</text>
+
+      <g transform="translate(16 34)">
+        <rect width="42" height="52" rx="8" fill="#f7f7f7" />
+        <path d="M29 0v13h13" fill="#e7e7e7" />
+        <path d="M10 20h22M10 27h18M10 34h21" stroke="#a7a7a7" strokeWidth="2" strokeLinecap="round" />
+        <rect x="8" y="41" width="25" height="6" rx="3" fill="#ff4d00" opacity=".15" />
+        <text x="20.5" y="46" textAnchor="middle" fontFamily="var(--font-display), monospace" fontSize="4.5" fill="#ff4d00">POLICY.MD</text>
+      </g>
+
+      <path d="M62 60h18" stroke="#777" strokeWidth="1.5" strokeDasharray="3 3" />
+      <path d="m76 56 4 4-4 4" fill="none" stroke="#ff4d00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      <g transform="translate(86 34)">
+        <rect width="52" height="52" rx="10" fill="#313131" stroke="#414141" />
+        <rect x="9" y="9" width="34" height="8" rx="4" fill="#f7f7f7" />
+        <rect x="9" y="22" width="27" height="8" rx="4" fill="#d8d8d8" />
+        <rect x="9" y="35" width="31" height="8" rx="4" fill="#bdbdbd" />
+        <circle cx="44" cy="13" r="3" fill="#ff4d00" />
+        <circle cx="37" cy="26" r="3" fill="#ff4d00" opacity=".7" />
+        <circle cx="41" cy="39" r="3" fill="#ff4d00" opacity=".45" />
+      </g>
+
+      <path d="M142 60h18" stroke="#777" strokeWidth="1.5" strokeDasharray="3 3" />
+      <path d="m156 56 4 4-4 4" fill="none" stroke="#ff4d00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      <g transform="translate(166 32)">
+        <ellipse cx="28" cy="10" rx="28" ry="10" fill="#0a0a0c" stroke="#ff4d00" strokeWidth="1.5" />
+        <path d="M0 10v38c0 5.5 12.5 10 28 10s28-4.5 28-10V10" fill="#0a0a0c" />
+        <path d="M0 28c0 5.5 12.5 10 28 10s28-4.5 28-10M0 46c0 5.5 12.5 10 28 10s28-4.5 28-10" fill="none" stroke="#3b3b3b" />
+        <text x="28" y="31" textAnchor="middle" fontFamily="var(--font-display), monospace" fontSize="7" fill="#ff4d00">POSTGRES</text>
+        <text x="28" y="43" textAnchor="middle" fontFamily="var(--font-display), monospace" fontSize="5" fill="#999">CORPUS V.12</text>
+      </g>
+
+      <g transform="translate(16 99)">
+        <rect width="206" height="24" rx="7" fill="#0c0c0c" stroke="#383838" />
+        <circle cx="12" cy="12" r="4" fill="#22c55e" />
+        <text x="22" y="15" fontFamily="var(--font-body), sans-serif" fontSize="7" fill="#f7f7f7">52 passages indexed</text>
+        <text x="124" y="15" fontFamily="var(--font-body), sans-serif" fontSize="7" fill="#999">stable IDs</text>
+        <text x="194" y="15" textAnchor="end" fontFamily="var(--font-display), monospace" fontSize="7" fill="#ff4d00">READY</text>
+      </g>
     </svg>
   );
 }

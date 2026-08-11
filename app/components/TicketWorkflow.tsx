@@ -128,8 +128,8 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
   const ticket = decision?.ticket;
 
   return (
-    <section className="product-workspace" style={{ paddingTop: showHeader ? "48px" : 0 }}>
-      <div className="shell">
+    <section className="product-workspace">
+      <div className="shell workspace-console">
         {showHeader && (
           <div className="legacy-route-heading">
             <span className="section-label"><i className="dot" aria-hidden="true" />Guided demo</span>
@@ -138,30 +138,35 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
           </div>
         )}
 
-        <div style={{ marginTop: "28px" }}>
+        <div className="workspace-upload-wrap">
           <WorkspaceUpload token={token} onStatusChange={setWorkspaceScope} />
         </div>
 
-        <div className="grid-3">
+        <div className="grid-3 workspace-scenario-grid" aria-label="Guided scenarios">
           {GUIDED_SCENARIOS.map((s, i) => (
             <button
               key={s.id}
               type="button"
               onClick={() => runScenario(s)}
               disabled={loading}
-              className={`radio-option${activeScenario?.id === s.id ? " selected" : ""}`}
+              className={`radio-option workspace-scenario-button${activeScenario?.id === s.id ? " selected" : ""}`}
             >
-              <div className="text-body-sm-bold">
-                {String(i + 1).padStart(2, "0")} &nbsp; {s.label}
+              <div className="workspace-scenario-top">
+                <span className="workspace-scenario-number">{String(i + 1).padStart(2, "0")}</span>
+                <span className="workspace-scenario-arrow" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M4 10h11M11 6l4 4-4 4" />
+                  </svg>
+                </span>
               </div>
-              <p className="text-caption" style={{ color: "var(--steel)", marginTop: "6px" }}>
-                {s.question}
-              </p>
+              <strong>{s.label}</strong>
+              <p>{s.question}</p>
+              <small>Run this scenario <span aria-hidden="true">→</span></small>
             </button>
           ))}
         </div>
 
-        <form onSubmit={runCustom} style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "16px", alignItems: "center" }}>
+        <form onSubmit={runCustom} className="workspace-custom-ticket">
           <Select value={draft.channel} onValueChange={(v) => setDraft((d) => ({ ...d, channel: v as SupportTicket["channel"] }))}>
             <SelectTrigger className="px-3 rounded-[var(--r-md)] text-[15px]" style={{ width: "110px", height: "44px" }}>
               <SelectValue />
@@ -292,8 +297,10 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
             </div>
           </div>
         ) : (
-          <div className="card-feature" style={{ marginTop: "24px", padding: "70px 30px", textAlign: "center", color: "var(--stone)" }}>
-            {loading ? "Running the live pipeline…" : "Choose a scenario above, or write your own ticket."}
+          <div className="card-feature workspace-empty-state">
+            <span aria-hidden="true">↳</span>
+            <strong>{loading ? "Running the live pipeline…" : "Ready for a decision"}</strong>
+            <p>{loading ? "Screening, retrieval, and verification are in progress." : "Choose a guided scenario above, upload a policy file, or write your own ticket."}</p>
           </div>
         )}
 

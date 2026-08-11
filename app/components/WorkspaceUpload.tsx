@@ -154,9 +154,17 @@ export function WorkspaceUpload({
 
   return (
     <div
-      className="card-icon-feature"
-      style={{ marginBottom: "20px", textAlign: "center", cursor: "pointer" }}
+      className="card-icon-feature workspace-upload-dropzone"
+      role="button"
+      tabIndex={0}
+      aria-label="Upload your own knowledge file"
       onClick={() => fileInputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fileInputRef.current?.click();
+        }
+      }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -174,11 +182,21 @@ export function WorkspaceUpload({
         <p className="text-body-sm-bold">{stage === "extracting" ? "Extracting text…" : "Chunking and indexing…"}</p>
       ) : (
         <>
-          <p className="text-body-sm-bold">Use your own knowledge</p>
-          <p className="text-caption" style={{ color: "var(--steel)", marginTop: "4px" }}>
-            Drop a .md, .txt, or .pdf file (max 2 MB) — it&apos;s indexed only for you, and removed automatically
-            after 30 minutes.
-          </p>
+          <span className="workspace-upload-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" /></svg>
+          </span>
+          <span className="workspace-upload-copy">
+            <strong>Use your own knowledge</strong>
+            <small>Drop a .md, .txt, or .pdf file · max 2 MB · private for 30 minutes</small>
+          </span>
+          <span className="workspace-upload-action">
+            Choose file
+            <i aria-hidden="true">
+              <svg viewBox="0 0 18 18" fill="none">
+                <path d="M4 9h9M10 5l4 4-4 4" />
+              </svg>
+            </i>
+          </span>
         </>
       )}
       {errorMsg && (

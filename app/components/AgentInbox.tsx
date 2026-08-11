@@ -144,27 +144,44 @@ export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
           </div>
         )}
 
-        <div className="card-feature inbox-panel" style={{ padding: 0, overflow: "hidden", marginTop: "24px" }}>
-          <div className="ticket-grid" style={{ display: "grid", gridTemplateColumns: ".85fr 1.2fr" }}>
-            <article className="inbox-queue" style={{ padding: "20px", borderRight: "1px solid var(--hairline-soft)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "14px", borderBottom: "1px solid var(--hairline-soft)" }}>
-                <span className="text-body-sm-bold">Queue</span>
-                <span className="text-caption" style={{ color: "var(--stone)" }}>
-                  {tickets ? `${tickets.length} open` : "…"}
-                </span>
+        <div className="inbox-console">
+          <div className="inbox-console-bar">
+            <div>
+              <span className="inbox-console-eyebrow">Human review desk</span>
+              <h2>Resolve what automation cannot.</h2>
+            </div>
+            <div className="inbox-console-status">
+              <i aria-hidden="true" />
+              <span>{tickets === null ? "Syncing queue" : `${tickets.length} ticket${tickets.length === 1 ? "" : "s"} open`}</span>
+            </div>
+          </div>
+
+          <div className="ticket-grid inbox-ticket-grid">
+            <article className="inbox-queue">
+              <div className="inbox-panel-heading">
+                <div>
+                  <span className="inbox-panel-number">01</span>
+                  <span className="text-body-sm-bold">Review queue</span>
+                </div>
+                <span className="text-caption inbox-panel-meta">Newest first</span>
               </div>
               {tickets === null ? (
-                <p className="text-caption" style={{ color: "var(--stone)", marginTop: "16px" }}>
-                  Loading…
-                </p>
+                <div className="inbox-loading" aria-label="Loading review tickets" aria-live="polite">
+                  {[0, 1, 2].map((item) => (
+                    <div className="inbox-skeleton-row" key={item}>
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  ))}
+                </div>
               ) : tickets.length === 0 ? (
-                <p className="text-caption" style={{ color: "var(--stone)", marginTop: "16px" }}>
-                  Nothing escalated right now. Run scenario 02 on{" "}
-                  <a href="/demo" style={{ textDecoration: "underline" }}>
-                    /demo
-                  </a>{" "}
-                  to generate one.
-                </p>
+                <div className="inbox-queue-empty">
+                  <span className="inbox-empty-check" aria-hidden="true">✓</span>
+                  <strong>Queue is clear</strong>
+                  <p>Run the unsupported-question scenario to create a review ticket.</p>
+                  <a href="/demo#live-workflow">Generate a ticket <span aria-hidden="true">→</span></a>
+                </div>
               ) : (
                 <div style={{ display: "grid", gap: "8px", marginTop: "14px" }}>
                   {tickets.map((t) => (
@@ -196,10 +213,19 @@ export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
               )}
             </article>
 
-            <article className="inbox-detail" style={{ padding: "20px" }}>
+            <article className="inbox-detail">
               {!selected ? (
-                <div style={{ padding: "60px 20px", textAlign: "center", color: "var(--stone)" }}>
-                  Select a ticket from the queue to review its evidence and respond.
+                <div className="inbox-detail-empty">
+                  <div className="inbox-flow-graphic" aria-hidden="true">
+                    <span><i>01</i><b>Ticket</b></span>
+                    <em>→</em>
+                    <span><i>02</i><b>Evidence</b></span>
+                    <em>→</em>
+                    <span className="is-accent"><i>03</i><b>Decision</b></span>
+                  </div>
+                  <span className="inbox-detail-kicker">Inspect before acting</span>
+                  <h3>Select a ticket to review its evidence.</h3>
+                  <p>Every escalation keeps the source, reason, and final human decision visible in one place.</p>
                 </div>
               ) : (
                 <>
@@ -258,16 +284,17 @@ export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
               )}
             </article>
           </div>
+          <div className="inbox-session-note">
+            <span className="inbox-lock" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12v10H6z" /></svg>
+            </span>
+            <div>
+              <strong>Private, session-scoped corrections</strong>
+              <p>Approved answers stay in your workspace, never enter the shared corpus, and expire automatically.</p>
+            </div>
+            <a href="/demo">View session <span aria-hidden="true">→</span></a>
+          </div>
         </div>
-
-        <p className="text-caption" style={{ color: "var(--stone)", marginTop: "16px", maxWidth: "640px" }}>
-          Corrections you approve here live in your own session workspace, not the shared corpus — no other visitor
-          ever sees them, and they expire automatically (see the countdown on{" "}
-          <a href="/demo" style={{ textDecoration: "underline" }}>
-            /demo
-          </a>{" "}
-          once you&apos;ve taught one).
-        </p>
       </div>
     </section>
   );

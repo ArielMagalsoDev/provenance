@@ -43,17 +43,38 @@ export function SiteFooter() {
     <footer className="editorial-footer">
       <div className="shell">
         <div className="recruiter-cta">
-          <h2>Looking for someone who can turn AI prototypes into accountable products?</h2>
-          <div className="recruiter-actions">
-            <a className="btn btn-primary" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel →</a>
-            <a className="btn btn-secondary" href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio<ArrowUpRight /></a>
+          <div className="recruiter-cta-copy">
+            <span className="recruiter-cta-kicker"><i aria-hidden="true" />Available for product + AI engineering roles</span>
+            <h2>Turn an AI prototype into a product people can trust.</h2>
+            <p>I bridge product framing, interface design, and full-stack AI engineering—then leave the decisions inspectable.</p>
+            <div className="recruiter-actions">
+              <a className="btn recruiter-contact-btn" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel<ArrowUpRight /></a>
+              <a className="btn recruiter-portfolio-btn" href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">View portfolio<ArrowUpRight /></a>
+            </div>
+          </div>
+
+          <div className="recruiter-cta-visual" aria-label="Product design, AI engineering, and shipped proof">
+            <div className="recruiter-visual-topline">
+              <span>One accountable builder</span>
+              <span>AM / 26</span>
+            </div>
+            <div className="recruiter-visual-flow" aria-hidden="true">
+              <div><b>01</b><span>Frame</span><small>Product</small></div>
+              <i>→</i>
+              <div><b>02</b><span>Build</span><small>AI system</small></div>
+              <i>→</i>
+              <div className="is-accent"><b>03</b><span>Ship</span><small>Proof</small></div>
+            </div>
+            <div className="recruiter-visual-status"><i aria-hidden="true" /><span>Open to new roles</span><strong>Manila · Remote-friendly</strong></div>
           </div>
         </div>
 
-        <div className="footer-directory" style={{ marginTop: "clamp(32px, 4vw, 48px)" }}>
+        <div className="footer-directory">
           <div className="footer-brand-block">
+            <span className="footer-brand-kicker">Project directory · 2026</span>
             <Link className="footer-brand" href="/">Provenance</Link>
             <p>An independent AI automation case study designed and built by Ariel Magalso.</p>
+            <div className="footer-brand-meta"><span>Product design</span><span>Full-stack AI</span></div>
           </div>
           {FOOTER_COLUMNS.map((column) => (
             <div className="footer-column" key={column.title}>
