@@ -9,7 +9,7 @@ export function AnnouncementBanner() {
       </svg>
       <DottedArrows direction="left" />
       <span>
-        Open to <b>product + AI engineering roles</b>
+        Open to <b>AI engineering roles</b>
       </span>
       <Link href="/demo" className="announcement-link">Run the live demo →</Link>
       <DottedArrows direction="right" />

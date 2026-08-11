@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDED_SCENARIOS } from "@/lib/scenarios";
+import { EVAL_HEADLINE } from "@/lib/evalHeadline";
 import { CountUp } from "./components/CountUp";
 import { OutcomeMark } from "./components/Editorial";
+import { EscalationStrip } from "./components/EscalationStrip";
 import { Reveal } from "./components/Reveal";
 
 export const metadata: Metadata = {
-  title: "Ariel Magalso — Product designer + AI engineer",
+  title: "Ariel Magalso — AI Engineer",
   description:
     "A recruiter-first case study of Provenance, an accountable AI support product designed and built end to end by Ariel Magalso.",
 };
@@ -239,21 +241,21 @@ export default function Home() {
         <div className="ah-shell">
           <Reveal className="ah-trust-row">
             <span className="ah-availability-dot" aria-hidden="true" />
-            <span>Ariel Magalso · Manila, Philippines · Open to new roles</span>
+            <span>Ariel Magalso · Philippines · Open to new roles</span>
           </Reveal>
 
           <Reveal delay={0.05} className="ah-hero-lockup">
             <h1>
-              <span>Product designer <span className="ah-inline-visual ah-inline-evidence"><InlineInfographic variant="verify" /></span></span>
-              <span className="ah-muted">+ AI engineer <span className="ah-inline-visual ah-inline-route"><InlineInfographic variant="route" /></span></span>
-              <span>building proof <span className="ah-inline-visual ah-inline-score"><InlineInfographic variant="evidence" /></span></span>
+              <span>AI Engineer <span className="ah-inline-visual ah-inline-evidence"><InlineInfographic variant="verify" /></span></span>
+              <span className="ah-muted">building proof, <span className="ah-inline-visual ah-inline-route"><InlineInfographic variant="route" /></span></span>
+              <span>not promises. <span className="ah-inline-visual ah-inline-score"><InlineInfographic variant="evidence" /></span></span>
             </h1>
           </Reveal>
 
           <Reveal delay={0.1} className="ah-hero-copy">
             <p>I design and build accountable AI products from product framing to production workflow. Provenance is the working proof.</p>
             <div className="ah-hero-actions">
-              <a className="ah-pill ah-pill-dark" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel <ArrowIcon /></a>
+              <a className="ah-pill ah-pill-dark" href="mailto:hello@arielmagalso.com">Contact Ariel <ArrowIcon /></a>
               <Link className="ah-pill ah-pill-light" href="#work">View the case study <ArrowIcon /></Link>
             </div>
             <div className="ah-hero-meta"><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio</a><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
@@ -392,7 +394,7 @@ export default function Home() {
               <div className="ah-builder-identity">
                 <div className="ah-builder-avatar" aria-hidden="true"><span>AM</span><i /></div>
                 <p>Designing AI products that can explain themselves.</p>
-                <small>Manila, Philippines · UTC+8</small>
+                <small>Philippines · UTC+8</small>
               </div>
               <div className="ah-builder-metrics" aria-label="Project proof points">
                 <div><strong>01</strong><span>End-to-end<br />product</span></div>
@@ -403,7 +405,7 @@ export default function Home() {
               <div className="ah-builder-signal" aria-hidden="true"><i /><i /><i /><i /><i /></div>
             </Reveal>
             <Reveal delay={0.08} className="ah-builder-copy">
-              <p className="ah-builder-role">Product designer + AI engineer</p>
+              <p className="ah-builder-role">AI Engineer</p>
               <h3>One accountable builder, from product framing to production workflow.</h3>
               <p>Ariel designed and built the interface, retrieval pipeline, verification gates, evaluation suite, and human-review handoff behind Provenance.</p>
               <div className="ah-builder-links">
@@ -474,15 +476,20 @@ export default function Home() {
         </div>
       </section>
 
+      <EscalationStrip
+        current="provenance"
+        currentMetric={{ value: `${EVAL_HEADLINE.casesPassing}/${EVAL_HEADLINE.casesTotal}`, label: "cases passing" }}
+      />
+
       <section className="ah-contact-section">
         <div className="ah-shell">
           <Reveal className="ah-contact-card">
             <div className="ah-contact-copy">
               <p className="ah-parenthetical">( Let&apos;s connect )</p>
-              <h2>Need a product designer who can ship the AI?</h2>
+              <h2>Need an AI engineer who can ship it?</h2>
               <p>I bridge product framing, interface design, and full-stack AI engineering—then leave the system inspectable.</p>
               <div className="ah-contact-actions">
-                <a className="ah-pill ah-pill-light" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel <ArrowIcon /></a>
+                <a className="ah-pill ah-pill-light" href="mailto:hello@arielmagalso.com">Contact Ariel <ArrowIcon /></a>
                 <a className="ah-contact-text-link" href="/architecture">Review the build <ArrowIcon /></a>
               </div>
             </div>
@@ -490,7 +497,7 @@ export default function Home() {
               <div className="ah-contact-status"><i aria-hidden="true" /><span>Available for new roles</span><small>2026</small></div>
               <div className="ah-contact-role-card">
                 <small>Next role</small>
-                <h3>Product design<br /><span>× AI engineering</span></h3>
+                <h3>AI Engineering</h3>
                 <p>For teams turning ambitious AI prototypes into trustworthy products.</p>
               </div>
               <div className="ah-contact-strengths" aria-label="Core strengths">
@@ -499,7 +506,7 @@ export default function Home() {
                 <div><i aria-hidden="true">03</i><span>Evaluation and<br />responsible systems</span></div>
               </div>
               <div className="ah-contact-details">
-                <div><small>Based in</small><strong>Manila, Philippines</strong></div>
+                <strong>Philippines</strong>
                 <div><small>Work setup</small><strong>Remote-friendly · UTC+8</strong></div>
               </div>
             </div>

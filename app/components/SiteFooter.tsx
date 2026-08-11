@@ -25,7 +25,7 @@ const FOOTER_COLUMNS = [
       { href: "https://arielmagalso.com", label: "Portfolio", external: true },
       { href: "https://github.com/ArielMagalsoDev/provenance", label: "GitHub", external: true },
       { href: "https://www.linkedin.com/in/magalsoariel", label: "LinkedIn", external: true },
-      { href: "mailto:ariel.r.magalso@gmail.com", label: "Email" },
+      { href: "mailto:hello@arielmagalso.com", label: "Email" },
     ],
   },
 ] as const;
@@ -44,11 +44,11 @@ export function SiteFooter() {
       <div className="shell">
         <div className="recruiter-cta">
           <div className="recruiter-cta-copy">
-            <span className="recruiter-cta-kicker"><i aria-hidden="true" />Available for product + AI engineering roles</span>
+            <span className="recruiter-cta-kicker"><i aria-hidden="true" />Available for AI engineering roles</span>
             <h2>Turn an AI prototype into a product people can trust.</h2>
             <p>I bridge product framing, interface design, and full-stack AI engineering—then leave the decisions inspectable.</p>
             <div className="recruiter-actions">
-              <a className="btn recruiter-contact-btn" href="mailto:ariel.r.magalso@gmail.com">Contact Ariel<ArrowUpRight /></a>
+              <a className="btn recruiter-contact-btn" href="mailto:hello@arielmagalso.com">Contact Ariel<ArrowUpRight /></a>
               <a className="btn recruiter-portfolio-btn" href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">View portfolio<ArrowUpRight /></a>
             </div>
           </div>
@@ -65,7 +65,7 @@ export function SiteFooter() {
               <i>→</i>
               <div className="is-accent"><b>03</b><span>Ship</span><small>Proof</small></div>
             </div>
-            <div className="recruiter-visual-status"><i aria-hidden="true" /><span>Open to new roles</span><strong>Manila · Remote-friendly</strong></div>
+            <div className="recruiter-visual-status"><i aria-hidden="true" /><span>Open to new roles</span><strong>Philippines · Remote-friendly</strong></div>
           </div>
         </div>
 

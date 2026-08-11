@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { EVAL_HEADLINE } from "@/lib/evalHeadline";
 import { ButtonArrow } from "../components/ButtonArrow";
 import { EditorialHeader, EditorialStat } from "../components/Editorial";
 import { CountUp } from "../components/CountUp";
@@ -37,7 +38,7 @@ export default function EvalsPage() {
 
       <section className="proof-band eval-proof-band">
         <div className="shell editorial-stats-grid">
-          <EditorialStat value={<CountUp value={45} suffix="/45" />} label="Cases passing" note="Current development set" />
+          <EditorialStat value={<CountUp value={EVAL_HEADLINE.casesPassing} suffix={`/${EVAL_HEADLINE.casesTotal}`} />} label="Cases passing" note="Current development set" />
           <EditorialStat value={<CountUp value={100} suffix="%" />} label="Route accuracy" note="Across committed cases" />
           <EditorialStat value={<CountUp value={0} suffix="%" />} label="False refusal" note="On answerable cases" />
           <EditorialStat value={<CountUp value={0} suffix="%" />} label="Fabrication" note="On committed cases" />

@@ -4,8 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { PROJECTS } from "@/lib/projects";
 import { AnnouncementBanner } from "./AnnouncementBanner";
 import { ArrowUpRight } from "./ButtonArrow";
+
+const PROVENANCE_ORDER = PROJECTS.find((project) => project.id === "provenance")!.order;
 
 const EXTERNAL_LINKS = [
   { href: "https://github.com/ArielMagalsoDev/provenance", label: "Source" },
@@ -120,7 +123,16 @@ export function SiteNav() {
                     <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
                   ))}
                 </div>
-                <a className="nav-cta" href="mailto:ariel.r.magalso@gmail.com">Contact</a>
+                <div className="nav-end-group">
+                  <Link
+                    className="nav-position-marker"
+                    href="/#escalation"
+                    onClick={(event) => followNavLink(event, "/#escalation")}
+                  >
+                    {PROVENANCE_ORDER} of 3 · cost of being wrong ↑
+                  </Link>
+                  <a className="nav-cta" href="mailto:hello@arielmagalso.com">Contact</a>
+                </div>
               </nav>
 
               <div className="nav-mobile" style={{ width: "100%", justifyContent: "space-between" }}>
@@ -157,7 +169,7 @@ export function SiteNav() {
             {secondaryLinks.map((link) => (
               <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer" onClick={closeMenu}>{link.label}<ArrowUpRight /></a>
             ))}
-            <a href="mailto:ariel.r.magalso@gmail.com" onClick={closeMenu}>Email Ariel<ArrowUpRight /></a>
+            <a href="mailto:hello@arielmagalso.com" onClick={closeMenu}>Email Ariel<ArrowUpRight /></a>
           </div>
         </div>
       )}
