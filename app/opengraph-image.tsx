@@ -83,9 +83,9 @@ export default function OpengraphImage() {
             display: "flex",
             flexDirection: "column",
             marginTop: 18,
-            fontSize: 116,
+            fontSize: 92,
             fontWeight: 700,
-            letterSpacing: -3,
+            letterSpacing: -2.5,
             lineHeight: 1.06,
             color: CHARCOAL,
           }}
