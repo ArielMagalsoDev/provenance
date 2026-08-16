@@ -43,3 +43,7 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# local agent/planning docs (kept out of the public repo)
+CLAUDE.md
+HANDOFF.md
