@@ -236,8 +236,8 @@ original brief.
 ## Run locally
 
 ```bash
-git clone <this-repo>
-cd grounded-rag
+git clone https://github.com/ArielMagalsoDev/provenance.git
+cd provenance
 npm install
 cp .env.example .env.local   # fill in ANTHROPIC_API_KEY and Supabase keys
 npm run ingest                # chunk, embed, upsert the corpus
