@@ -1,22 +1,45 @@
 # Provenance
 
-_(originally built as "grounded-rag" — renamed 2026-08-08; same underlying pipeline)_
-
 A retrieval system that answers only from its source documents and refuses — visibly,
-with the evidence shown — when those documents don't support an answer.
+with the evidence shown — when those documents don't support an answer. Live at
+**[provenance.arielmagalso.com](https://provenance.arielmagalso.com)**.
 
-**Live demo:** [provenance.arielmagalso.com](https://provenance.arielmagalso.com)
-
----
+**Stack:** Next.js · TypeScript · Tailwind · shadcn/ui · Supabase Postgres + pgvector ·
+Claude API · Cloudflare Turnstile · Vercel
 
 ## The problem
 
 A RAG chatbot that confidently invents a refund policy, a price, or a liability term
-isn't a minor bug — it's a real liability the moment a customer acts on it. Most RAG
-demos optimize for "does it retrieve something relevant"; almost none show their work
-on "should this answer be trusted at all." This project is a small, complete example of
-the verification layer that catches a model when it's about to fabricate, plus the
-evals that prove the layer actually works — not just the chatbot on top.
+isn't a minor bug — it's a real liability the moment a customer acts on it. The failure
+is quiet: the fabricated sentence sits in the same paragraph as four correct ones, in the
+same confident voice, and nothing in the response marks it as different.
+
+Most RAG systems optimize for "did it retrieve something relevant" and stop there. Almost
+none answer the question that actually matters — *should this answer be trusted at all* —
+or give the reader any way to check.
+
+## The solution
+
+Nothing reaches the user until a separate verification pass has tried to break it, and
+every step that produced the answer is visible in the response.
+
+- **Refusal is a first-class outcome.** When the sources don't support an answer, the
+  system says so and shows the score that caused it — not an error, not a hedge.
+- **Claim-level entailment, not a vibe check.** The generated answer is decomposed into
+  atomic claims and each is scored against the retrieved passages. One fabricated claim
+  sinks the whole answer.
+- **Two gates, not one.** A mean-score threshold alone lets one invented claim hide among
+  four good ones (0.9 × 4 + 0.0 still averages 0.72). A per-claim floor runs underneath it.
+- **Citations that resolve.** Every answer cites passage IDs, and the corpus is linked
+  from the UI so a reader can verify a refusal was actually correct.
+- **Screening before spending.** Injection and off-topic checks, per-IP rate limiting,
+  and a race-safe daily spend cap all run before any expensive model call.
+- **The pipeline is the UI.** Screening result, retrieved passages with similarity
+  scores, groundedness score, threshold, and the accept/reject decision are returned in
+  one object and rendered directly — nothing is reconstructed after the fact.
+- **Measured, not asserted.** A committed eval suite reports accuracy, false-refusal
+  rate, and fabrication rate per bucket — including a threshold sweep whose result was
+  that the threshold barely mattered, written up as-is rather than dressed up.
 
 ---
 
