@@ -224,7 +224,8 @@ export async function runTicket(
   ipHash: string,
   turnstileToken: string,
   clientIp: string,
-  workspace?: WorkspaceScope
+  workspace?: WorkspaceScope,
+  trustedGuidedDemo = false
 ): Promise<AutomationDecision> {
   const fullTicket: SupportTicket = {
     ...ticket,
@@ -232,7 +233,7 @@ export async function runTicket(
     receivedAt: new Date().toISOString(),
   };
 
-  const askResponse = await runAskPipeline(ticket.message, ipHash, turnstileToken, clientIp, workspace);
+  const askResponse = await runAskPipeline(ticket.message, ipHash, turnstileToken, clientIp, workspace, trustedGuidedDemo);
   const outcome = outcomeToDecision(askResponse.outcome);
   const reason = deriveReason(askResponse);
   const auditEvents = synthesizeAuditEvents(fullTicket.id, askResponse, outcome, reason);

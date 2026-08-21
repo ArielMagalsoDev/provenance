@@ -43,14 +43,15 @@ export async function runAskPipeline(
   ipHash: string,
   turnstileToken: string,
   clientIp: string,
-  workspace?: WorkspaceScope
+  workspace?: WorkspaceScope,
+  trustedGuidedDemo = false
 ): Promise<AskResponse> {
   // 1. Bot check — before anything else touches the DB or a model. (A prior
   //    version computed the workspace-aware cache key here, ahead of this
   //    check — wrong: it added a DB call, and any error in it became an
   //    uncaught 500 instead of a graceful "blocked" response, before the
   //    non-negotiable screening/rate-limit gate had even run.)
-  const turnstileOk = await verifyTurnstile(turnstileToken, clientIp);
+  const turnstileOk = trustedGuidedDemo || await verifyTurnstile(turnstileToken, clientIp);
   if (!turnstileOk) return blocked("bot_check_failed");
 
   // 2. Rate limit — before any model call.

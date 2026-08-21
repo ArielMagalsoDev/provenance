@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { runTicket } from "@/lib/tickets";
 import { getClientIp, hashIp } from "@/lib/limit";
 import { getWorkspaceId } from "@/lib/workspace";
+import { GUIDED_SCENARIOS } from "@/lib/scenarios";
 import type { SupportTicket } from "@/lib/types";
 
 export const maxDuration = 60; // same reasoning as /api/ask
@@ -48,6 +49,19 @@ export async function POST(req: Request) {
   // do (see lib/workspace.ts). A visitor with no workspace yet just searches
   // the shared corpus, same as before this feature existed.
   const workspaceId = getWorkspaceId(req);
+  // The three presentation scenarios are immutable, server-whitelisted inputs.
+  // They remain rate-limited and still run through screening, retrieval,
+  // generation, grounding, and routing. Skipping only the browser bot check
+  // keeps the guided demo usable when an embedded Turnstile token is rejected
+  // by a custom-domain/browser combination. Custom tickets never qualify.
+  const isGuidedScenario = GUIDED_SCENARIOS.some(
+    (scenario) =>
+      scenario.question === message &&
+      scenario.channel === channel &&
+      scenario.customerName === customerName &&
+      (scenario.customerContext ?? "") === (customerContext ?? "") &&
+      scenario.category === category
+  );
 
   try {
     const decision = await runTicket(
@@ -55,7 +69,8 @@ export async function POST(req: Request) {
       hashIp(ip),
       turnstileToken,
       ip,
-      workspaceId ? { id: workspaceId, includeShared } : undefined
+      workspaceId ? { id: workspaceId, includeShared } : undefined,
+      isGuidedScenario
     );
     return NextResponse.json(decision);
   } catch (err) {
