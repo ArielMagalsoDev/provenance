@@ -118,9 +118,27 @@ export async function verifyTurnstile(token: string, remoteIp: string): Promise<
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ secret, response: token, remoteip: remoteIp }),
     });
-    const data = (await res.json()) as { success: boolean };
+    const data = (await res.json()) as {
+      success?: boolean;
+      "error-codes"?: string[];
+      hostname?: string;
+      action?: string;
+    };
+    if (!data.success) {
+      // Siteverify error codes are safe operational metadata. Never log the
+      // response token, remote IP, or secret key.
+      console.warn("[turnstile] validation failed", {
+        errorCodes: data["error-codes"] ?? [],
+        hostname: data.hostname ?? null,
+        action: data.action ?? null,
+        httpStatus: res.status,
+      });
+    }
     return Boolean(data.success);
-  } catch {
+  } catch (err) {
+    console.error("[turnstile] verification request failed", {
+      message: err instanceof Error ? err.message : "unknown error",
+    });
     // Fail closed: a Turnstile outage blocks requests rather than silently admitting bots.
     return false;
   }
