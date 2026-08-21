@@ -54,8 +54,11 @@ export async function runAskPipeline(
   const turnstileOk = trustedGuidedDemo || await verifyTurnstile(turnstileToken, clientIp);
   if (!turnstileOk) return blocked("bot_check_failed");
 
-  // 2. Rate limit — before any model call.
-  const withinLimit = await checkRateLimit(ipHash);
+  // 2. Rate limit — before any model call. The three exact, server-whitelisted
+  // guided scenarios are presentation fixtures backed by stable cache entries;
+  // do not let repeated demo clicks exhaust the visitor's custom-request quota.
+  // Custom tickets and uploaded-document questions always use the real limit.
+  const withinLimit = trustedGuidedDemo || await checkRateLimit(ipHash);
   if (!withinLimit) return blocked("rate_limited");
 
   // 3. Cache — identical questions cost nothing, and this is what keeps the
