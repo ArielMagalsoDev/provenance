@@ -26,9 +26,11 @@ function countdownParts(expiresAt: string): { label: string; critical: boolean; 
 export function WorkspaceUpload({
   token,
   onStatusChange,
+  onTokenConsumed,
 }: {
   token: string;
   onStatusChange: (status: { active: boolean; includeShared: boolean } | null) => void;
+  onTokenConsumed: () => void;
 }) {
   const [status, setStatus] = useState<WorkspaceStatus | null>(null);
   const [includeShared, setIncludeShared] = useState(true);
@@ -103,6 +105,8 @@ export function WorkspaceUpload({
     } catch {
       setErrorMsg("Network error. Please try again.");
       setStage("error");
+    } finally {
+      onTokenConsumed();
     }
   }
 

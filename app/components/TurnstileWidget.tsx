@@ -8,25 +8,36 @@ declare global {
     turnstile?: {
       render: (
         container: HTMLElement,
-        options: { sitekey: string; callback: (token: string) => void; "error-callback"?: () => void }
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          "error-callback"?: () => void;
+          "expired-callback"?: () => void;
+          "timeout-callback"?: () => void;
+        }
       ) => string;
+      reset: (widgetId: string) => void;
     };
   }
 }
 
-export function TurnstileWidget({ onToken }: { onToken: (token: string) => void }) {
+export function TurnstileWidget({ onToken, resetNonce = 0 }: { onToken: (token: string) => void; resetNonce?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const renderedRef = useRef(false);
+  const widgetIdRef = useRef<string | null>(null);
+  const previousResetNonceRef = useRef(resetNonce);
   const id = useId();
 
   const tryRender = () => {
     if (renderedRef.current) return;
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
     if (!siteKey || !window.turnstile || !containerRef.current) return;
-    window.turnstile.render(containerRef.current, {
+    widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
       callback: onToken,
       "error-callback": () => onToken(""),
+      "expired-callback": () => onToken(""),
+      "timeout-callback": () => onToken(""),
     });
     renderedRef.current = true;
   };
@@ -35,6 +46,15 @@ export function TurnstileWidget({ onToken }: { onToken: (token: string) => void 
     tryRender();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (previousResetNonceRef.current === resetNonce) return;
+    previousResetNonceRef.current = resetNonce;
+    onToken("");
+    if (widgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(widgetIdRef.current);
+    }
+  }, [onToken, resetNonce]);
 
   return (
     <>

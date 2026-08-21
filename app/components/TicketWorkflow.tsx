@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { GUIDED_SCENARIOS, type GuidedScenario } from "@/lib/scenarios";
 import type { AutomationDecision, AuditEvent, SupportTicket } from "@/lib/types";
 import { EvidenceSteps } from "./EvidenceSteps";
@@ -73,14 +73,20 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [activeScenario, setActiveScenario] = useState<GuidedScenario | null>(null);
   const [token, setToken] = useState("");
+  const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
   const [loading, setLoading] = useState(false);
   const [decision, setDecision] = useState<AutomationDecision | null>(null);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [workspaceScope, setWorkspaceScope] = useState<{ active: boolean; includeShared: boolean } | null>(null);
 
+  const resetTurnstile = useCallback(() => {
+    setToken("");
+    setTurnstileResetNonce((value) => value + 1);
+  }, []);
+
   async function submit(payload: Draft) {
-    if (!payload.message.trim() || loading) return;
+    if (!payload.message.trim() || loading || !token) return;
     setLoading(true);
     setError(null);
     setDecision(null);
@@ -102,6 +108,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
+      resetTurnstile();
     }
   }
 
@@ -139,7 +146,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
         )}
 
         <div className="workspace-upload-wrap">
-          <WorkspaceUpload token={token} onStatusChange={setWorkspaceScope} />
+          <WorkspaceUpload token={token} onStatusChange={setWorkspaceScope} onTokenConsumed={resetTurnstile} />
         </div>
 
         <div className="grid-3 workspace-scenario-grid" aria-label="Guided scenarios">
@@ -148,7 +155,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
               key={s.id}
               type="button"
               onClick={() => runScenario(s)}
-              disabled={loading}
+              disabled={loading || !token}
               className={`radio-option workspace-scenario-button${activeScenario?.id === s.id ? " selected" : ""}`}
             >
               <div className="workspace-scenario-top">
@@ -196,8 +203,8 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
             className="input"
             style={{ flex: 1, minWidth: "220px" }}
           />
-          <Button type="submit" variant="ink" disabled={loading || !draft.message.trim()}>
-            {loading ? "Processing…" : "Submit ticket"}
+          <Button type="submit" variant="ink" disabled={loading || !token || !draft.message.trim()}>
+            {loading ? "Processing…" : !token ? "Verifying…" : "Submit ticket"}
           </Button>
         </form>
 
@@ -305,7 +312,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
         )}
 
         <div style={{ marginTop: "20px" }}>
-          <TurnstileWidget onToken={setToken} />
+          <TurnstileWidget onToken={setToken} resetNonce={turnstileResetNonce} />
         </div>
 
         <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginTop: "24px", color: "var(--steel)" }} className="text-body-sm">
