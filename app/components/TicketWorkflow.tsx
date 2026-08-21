@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { GUIDED_SCENARIOS, type GuidedScenario } from "@/lib/scenarios";
 import type { AutomationDecision, AuditEvent, SupportTicket } from "@/lib/types";
 import { EvidenceSteps } from "./EvidenceSteps";
 import { DecisionPanel } from "./DecisionPanel";
 import { SlackNotificationCard } from "./SlackNotificationCard";
-import { TurnstileWidget } from "./TurnstileWidget";
 import { WorkspaceUpload } from "./WorkspaceUpload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,21 +71,14 @@ const metaRow: React.CSSProperties = { display: "flex", justifyContent: "space-b
 export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [activeScenario, setActiveScenario] = useState<GuidedScenario | null>(null);
-  const [token, setToken] = useState("");
-  const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
   const [loading, setLoading] = useState(false);
   const [decision, setDecision] = useState<AutomationDecision | null>(null);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [workspaceScope, setWorkspaceScope] = useState<{ active: boolean; includeShared: boolean } | null>(null);
 
-  const resetTurnstile = useCallback(() => {
-    setToken("");
-    setTurnstileResetNonce((value) => value + 1);
-  }, []);
-
   async function submit(payload: Draft) {
-    if (!payload.message.trim() || loading || !token) return;
+    if (!payload.message.trim() || loading) return;
     setLoading(true);
     setError(null);
     setDecision(null);
@@ -94,7 +86,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, turnstileToken: token, includeShared: workspaceScope?.includeShared ?? true }),
+        body: JSON.stringify({ ...payload, includeShared: workspaceScope?.includeShared ?? true }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -108,7 +100,6 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
-      resetTurnstile();
     }
   }
 
@@ -146,7 +137,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
         )}
 
         <div className="workspace-upload-wrap">
-          <WorkspaceUpload token={token} onStatusChange={setWorkspaceScope} onTokenConsumed={resetTurnstile} />
+          <WorkspaceUpload onStatusChange={setWorkspaceScope} />
         </div>
 
         <div className="grid-3 workspace-scenario-grid" aria-label="Guided scenarios">
@@ -155,7 +146,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
               key={s.id}
               type="button"
               onClick={() => runScenario(s)}
-              disabled={loading || !token}
+              disabled={loading}
               className={`radio-option workspace-scenario-button${activeScenario?.id === s.id ? " selected" : ""}`}
             >
               <div className="workspace-scenario-top">
@@ -203,8 +194,8 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
             className="input"
             style={{ flex: 1, minWidth: "220px" }}
           />
-          <Button type="submit" variant="ink" disabled={loading || !token || !draft.message.trim()}>
-            {loading ? "Processing…" : !token ? "Verifying…" : "Submit ticket"}
+          <Button type="submit" variant="ink" disabled={loading || !draft.message.trim()}>
+            {loading ? "Processing…" : "Submit ticket"}
           </Button>
         </form>
 
@@ -310,10 +301,6 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
             <p>{loading ? "Screening, retrieval, and verification are in progress." : "Choose a guided scenario above, upload a policy file, or write your own ticket."}</p>
           </div>
         )}
-
-        <div style={{ marginTop: "20px" }}>
-          <TurnstileWidget onToken={setToken} resetNonce={turnstileResetNonce} />
-        </div>
 
         <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginTop: "24px", color: "var(--steel)" }} className="text-body-sm">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: "2px", stroke: "var(--steel)" }}>

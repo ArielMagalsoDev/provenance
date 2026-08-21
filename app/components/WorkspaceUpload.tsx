@@ -16,21 +16,10 @@ function countdownParts(expiresAt: string): { label: string; critical: boolean; 
   return { label: `${mm}:${String(ss).padStart(2, "0")}`, critical: msLeft < 2 * 60_000, expired: false };
 }
 
-// Takes the Turnstile token as a prop rather than mounting its own
-// TurnstileWidget — Next.js's <Script> component dedupes by src, so a second
-// independent widget instance on the same page (this one, alongside
-// TicketWorkflow's) caused the *first* widget's callback to silently never
-// resolve, leaving ticket submission's own token permanently empty and every
-// ticket coming back "blocked" (bot_check_failed) regardless of what was
-// actually asked. One shared token per page, not one per feature.
 export function WorkspaceUpload({
-  token,
   onStatusChange,
-  onTokenConsumed,
 }: {
-  token: string;
   onStatusChange: (status: { active: boolean; includeShared: boolean } | null) => void;
-  onTokenConsumed: () => void;
 }) {
   const [status, setStatus] = useState<WorkspaceStatus | null>(null);
   const [includeShared, setIncludeShared] = useState(true);
@@ -38,7 +27,6 @@ export function WorkspaceUpload({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const pendingFileRef = useRef<File | null>(null);
 
   const loadStatus = useCallback(async () => {
     const res = await fetch("/api/workspace/status");
@@ -69,28 +57,11 @@ export function WorkspaceUpload({
     }
   }, [now, status?.expiresAt]);
 
-  // If a file was chosen before the shared token resolved, run it as soon as
-  // it does — instead of the widget-specific retry this used to do locally.
-  useEffect(() => {
-    if (token && pendingFileRef.current) {
-      const file = pendingFileRef.current;
-      pendingFileRef.current = null;
-      void upload(file);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
   async function upload(file: File) {
-    if (!token) {
-      pendingFileRef.current = file;
-      setErrorMsg("Verifying you're not a bot — try again in a second.");
-      return;
-    }
     setStage("extracting");
     setErrorMsg(null);
     const form = new FormData();
     form.append("file", file);
-    form.append("turnstileToken", token);
     try {
       setStage("indexing");
       const res = await fetch("/api/workspace/upload", { method: "POST", body: form });
@@ -105,8 +76,6 @@ export function WorkspaceUpload({
     } catch {
       setErrorMsg("Network error. Please try again.");
       setStage("error");
-    } finally {
-      onTokenConsumed();
     }
   }
 

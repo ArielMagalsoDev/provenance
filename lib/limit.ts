@@ -1,6 +1,6 @@
 // Rate limiting, response cache, and the global spend cap — all Postgres-backed (see
-// CLAUDE.md "Stack (fixed — amended)" for why this replaced Upstash Redis), plus
-// Turnstile verification. Every model call's max_tokens is capped in generate.ts /
+// CLAUDE.md "Stack (fixed — amended)" for why this replaced Upstash Redis).
+// Every model call's max_tokens is capped in generate.ts /
 // ground.ts / screen.ts, not here.
 //
 // No `import "server-only"` guard — see the note in lib/supabaseAdmin.ts.
@@ -103,43 +103,4 @@ export async function getTodaySpend(): Promise<number> {
 
 export function isSpendCapHit(totalAfterCharge: number): boolean {
   return totalAfterCharge > DAILY_SPEND_CAP_USD;
-}
-
-export async function verifyTurnstile(token: string, remoteIp: string): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) {
-    throw new Error("Missing TURNSTILE_SECRET_KEY. Copy .env.example to .env.local and fill it in.");
-  }
-  if (!token) return false;
-
-  try {
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ secret, response: token, remoteip: remoteIp }),
-    });
-    const data = (await res.json()) as {
-      success?: boolean;
-      "error-codes"?: string[];
-      hostname?: string;
-      action?: string;
-    };
-    if (!data.success) {
-      // Siteverify error codes are safe operational metadata. Never log the
-      // response token, remote IP, or secret key.
-      console.warn("[turnstile] validation failed", {
-        errorCodes: data["error-codes"] ?? [],
-        hostname: data.hostname ?? null,
-        action: data.action ?? null,
-        httpStatus: res.status,
-      });
-    }
-    return Boolean(data.success);
-  } catch (err) {
-    console.error("[turnstile] verification request failed", {
-      message: err instanceof Error ? err.message : "unknown error",
-    });
-    // Fail closed: a Turnstile outage blocks requests rather than silently admitting bots.
-    return false;
-  }
 }

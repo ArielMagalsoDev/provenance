@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import type { AutomationDecision } from "@/lib/types";
 import type { InboxTicketRow } from "@/lib/inbox";
 import { EvidenceSteps } from "./EvidenceSteps";
-import { TurnstileWidget } from "./TurnstileWidget";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -30,7 +29,6 @@ export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
   const [resolving, setResolving] = useState<"approve" | "dismiss" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [approved, setApproved] = useState<InboxTicketRow | null>(null);
-  const [token, setToken] = useState("");
   const [replaying, setReplaying] = useState(false);
   const [replayResult, setReplayResult] = useState<AutomationDecision | null>(null);
 
@@ -93,7 +91,6 @@ export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
           customerName: "Same customer, asking again",
           message: approved.message,
           category: approved.category,
-          turnstileToken: token,
         }),
       });
       if (res.ok) setReplayResult(await res.json());
@@ -129,7 +126,6 @@ export function AgentInbox({ showHeader = true }: { showHeader?: boolean }) {
                     {replaying ? "Asking…" : "Ask the same question again"}
                   </Button>
                 </span>
-                <TurnstileWidget onToken={setToken} />
               </div>
             ) : (
               <div style={{ marginTop: "16px", padding: "16px", background: "var(--canvas)", borderRadius: "var(--r-lg)", border: "1px solid var(--hairline)" }}>

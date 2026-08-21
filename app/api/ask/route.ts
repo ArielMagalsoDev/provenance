@@ -1,4 +1,4 @@
-// Thin HTTP wrapper over lib/pipeline.ts. The actual bot-check -> rate-limit -> cache
+// Thin HTTP wrapper over lib/pipeline.ts. The actual rate-limit -> cache
 // -> spend-cap -> screen -> retrieve -> generate -> ground ordering lives there, shared
 // with /api/tickets (the Provenance ticket-shaped endpoint).
 import { NextResponse } from "next/server";
@@ -8,7 +8,7 @@ import { getClientIp, hashIp } from "@/lib/limit";
 export const maxDuration = 60; // pipeline is 3-4 sequential model calls; see CLAUDE.md
 
 export async function POST(req: Request) {
-  let body: { question?: unknown; turnstileToken?: unknown };
+  let body: { question?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -16,7 +16,6 @@ export async function POST(req: Request) {
   }
 
   const question = typeof body.question === "string" ? body.question.trim() : "";
-  const turnstileToken = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
 
   if (!question) {
     return NextResponse.json({ error: "question is required" }, { status: 400 });
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
   const ip = getClientIp(req.headers);
 
   try {
-    const response = await runAskPipeline(question, hashIp(ip), turnstileToken, ip);
+    const response = await runAskPipeline(question, hashIp(ip));
     return NextResponse.json(response);
   } catch (err) {
     // Never let a provider or DB error surface as a raw stack trace.

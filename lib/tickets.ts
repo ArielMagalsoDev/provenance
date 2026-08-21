@@ -222,8 +222,6 @@ async function notifySlack(decision: AutomationDecision): Promise<void> {
 export async function runTicket(
   ticket: TicketInput,
   ipHash: string,
-  turnstileToken: string,
-  clientIp: string,
   workspace?: WorkspaceScope,
   trustedGuidedDemo = false
 ): Promise<AutomationDecision> {
@@ -233,7 +231,7 @@ export async function runTicket(
     receivedAt: new Date().toISOString(),
   };
 
-  const askResponse = await runAskPipeline(ticket.message, ipHash, turnstileToken, clientIp, workspace, trustedGuidedDemo);
+  const askResponse = await runAskPipeline(ticket.message, ipHash, workspace, trustedGuidedDemo);
   const outcome = outcomeToDecision(askResponse.outcome);
   const reason = deriveReason(askResponse);
   const auditEvents = synthesizeAuditEvents(fullTicket.id, askResponse, outcome, reason);

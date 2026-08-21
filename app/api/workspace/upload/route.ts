@@ -2,15 +2,15 @@
 // exact same chunk -> embed -> retrieve -> generate -> ground pipeline as the
 // shared corpus, scoped to their workspace. See
 // docs/PLAN-hitl-and-workspaces.md. Embedding is free (Supabase gte-small),
-// so this never touches the daily spend cap — only Turnstile + rate limit
-// gate it, same as every other write path.
+// so this never touches the daily spend cap. The server-side rate limit still
+// gates it, alongside strict file-size, page, character, and chunk limits.
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { embedTexts } from "@/lib/embed";
 import { extractPdfText } from "@/lib/pdf";
 import { chunkDocument, approxTokens } from "@/lib/chunk";
-import { getClientIp, hashIp, checkRateLimit, verifyTurnstile } from "@/lib/limit";
+import { getClientIp, hashIp, checkRateLimit } from "@/lib/limit";
 import { ensureWorkspaceId, withWorkspaceCookie, workspaceExpiresAt } from "@/lib/workspace";
 
 // Vercel's Hobby plan hard-caps serverless functions at 10s at the platform
@@ -62,11 +62,6 @@ export async function POST(req: Request) {
   }
 
   const file = form.get("file");
-  const turnstileToken = typeof form.get("turnstileToken") === "string" ? (form.get("turnstileToken") as string) : "";
-
-  const turnstileOk = await verifyTurnstile(turnstileToken, ip);
-  if (!turnstileOk) return errorResponse("bot_check_failed", 403);
-
   const withinLimit = await checkRateLimit(hashIp(ip));
   if (!withinLimit) return errorResponse("rate_limited", 429);
 

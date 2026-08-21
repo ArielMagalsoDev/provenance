@@ -1,4 +1,4 @@
-// The full request pipeline: bot check -> rate limit -> cache -> spend cap -> screen
+// The full request pipeline: rate limit -> cache -> spend cap -> screen
 // -> retrieve -> generate -> ground. Extracted from app/api/ask/route.ts so both
 // /api/ask (question/answer contract) and /api/tickets (Provenance ticket
 // contract — see lib/tickets.ts) share one implementation instead of two copies of
@@ -18,7 +18,6 @@ import {
   setCachedResponse,
   adjustSpend,
   isSpendCapHit,
-  verifyTurnstile,
   ESTIMATED_COST_SCREEN_USD,
   ESTIMATED_COST_PIPELINE_USD,
 } from "./limit";
@@ -41,27 +40,17 @@ function blocked(reason: ScreenResult["reason"], latencyMs = 0): AskResponse {
 export async function runAskPipeline(
   question: string,
   ipHash: string,
-  turnstileToken: string,
-  clientIp: string,
   workspace?: WorkspaceScope,
   trustedGuidedDemo = false
 ): Promise<AskResponse> {
-  // 1. Bot check — before anything else touches the DB or a model. (A prior
-  //    version computed the workspace-aware cache key here, ahead of this
-  //    check — wrong: it added a DB call, and any error in it became an
-  //    uncaught 500 instead of a graceful "blocked" response, before the
-  //    non-negotiable screening/rate-limit gate had even run.)
-  const turnstileOk = trustedGuidedDemo || await verifyTurnstile(turnstileToken, clientIp);
-  if (!turnstileOk) return blocked("bot_check_failed");
-
-  // 2. Rate limit — before any model call. The three exact, server-whitelisted
+  // 1. Rate limit — before any model call. The three exact, server-whitelisted
   // guided scenarios are presentation fixtures backed by stable cache entries;
   // do not let repeated demo clicks exhaust the visitor's custom-request quota.
   // Custom tickets and uploaded-document questions always use the real limit.
   const withinLimit = trustedGuidedDemo || await checkRateLimit(ipHash);
   if (!withinLimit) return blocked("rate_limited");
 
-  // 3. Cache — identical questions cost nothing, and this is what keeps the
+  // 2. Cache — identical questions cost nothing, and this is what keeps the
   //    pre-warmed example questions answerable even when the spend cap is hit.
   //    Only treat this as workspace-scoped if the workspace actually has live
   //    (non-expired) overlay content — a visitor carrying a workspace cookie
@@ -74,14 +63,14 @@ export async function runAskPipeline(
   const cached = await getCachedResponse(questionHash, cacheTtlMinutes);
   if (cached) return { ...cached, cached: true };
 
-  // 4. Spend cap, phase 1: charge the screening call's estimated cost up front.
+  // 3. Spend cap, phase 1: charge the screening call's estimated cost up front.
   const totalAfterScreenCharge = await adjustSpend(ESTIMATED_COST_SCREEN_USD);
   if (isSpendCapHit(totalAfterScreenCharge)) {
     await adjustSpend(-ESTIMATED_COST_SCREEN_USD);
     return blocked("budget_exhausted");
   }
 
-  // 5. Screen. workspaceActive widens the classifier's topic scope: with an
+  // 4. Screen. workspaceActive widens the classifier's topic scope: with an
   //    uploaded document present, "off_topic" means "no document could answer
   //    this," not "not about coworking" — otherwise every question about the
   //    visitor's own document is blocked and the upload feature is unusable.
@@ -92,7 +81,7 @@ export async function runAskPipeline(
     return { ...blocked(screening.reason, screening.latencyMs), screening };
   }
 
-  // 6. Spend cap, phase 2: charge the rest of the pipeline (retrieval is free — gte-
+  // 5. Spend cap, phase 2: charge the rest of the pipeline (retrieval is free — gte-
   //    small runs in Supabase's edge runtime at no per-call cost to us — but
   //    generation + decomposition + entailment are three more Haiku calls).
   const totalAfterPipelineCharge = await adjustSpend(ESTIMATED_COST_PIPELINE_USD);
@@ -101,10 +90,10 @@ export async function runAskPipeline(
     return { ...blocked("budget_exhausted"), screening };
   }
 
-  // 7. Retrieve.
+  // 6. Retrieve.
   const retrieval = await retrieve(question, undefined, workspace);
 
-  // 8. Generate.
+  // 7. Generate.
   const generation = await generateAnswer(question, retrieval.passages);
   if ("ok" in generation) {
     return {
@@ -119,7 +108,7 @@ export async function runAskPipeline(
     };
   }
 
-  // 9. Ground.
+  // 8. Ground.
   const grounding = await groundAnswer(generation.answer, retrieval.passages);
   if ("ok" in grounding) {
     return {

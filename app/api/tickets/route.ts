@@ -18,7 +18,6 @@ export async function POST(req: Request) {
     customerContext?: unknown;
     message?: unknown;
     category?: unknown;
-    turnstileToken?: unknown;
     includeShared?: unknown; // "my docs only" toggle — false = search only the visitor's own workspace content
   };
   try {
@@ -34,7 +33,6 @@ export async function POST(req: Request) {
   const customerName = typeof body.customerName === "string" && body.customerName.trim() ? body.customerName.trim() : "Anonymous visitor";
   const customerContext = typeof body.customerContext === "string" ? body.customerContext : undefined;
   const category = typeof body.category === "string" && body.category.trim() ? body.category.trim() : "General inquiry";
-  const turnstileToken = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
   const includeShared = body.includeShared !== false; // default true unless explicitly turned off
 
   if (!message) {
@@ -50,10 +48,8 @@ export async function POST(req: Request) {
   // the shared corpus, same as before this feature existed.
   const workspaceId = getWorkspaceId(req);
   // The three presentation scenarios are immutable, server-whitelisted inputs.
-  // They remain rate-limited and still run through screening, retrieval,
-  // generation, grounding, and routing. Skipping only the browser bot check
-  // keeps the guided demo usable when an embedded Turnstile token is rejected
-  // by a custom-domain/browser combination. Custom tickets never qualify.
+  // They still run through screening, retrieval, generation, grounding, and
+  // routing, while repeated demo clicks do not exhaust the visitor quota.
   const isGuidedScenario = GUIDED_SCENARIOS.some(
     (scenario) =>
       scenario.question === message &&
@@ -67,8 +63,6 @@ export async function POST(req: Request) {
     const decision = await runTicket(
       { channel, customerName, customerContext, message, category },
       hashIp(ip),
-      turnstileToken,
-      ip,
       workspaceId ? { id: workspaceId, includeShared } : undefined,
       isGuidedScenario
     );
