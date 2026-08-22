@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDED_SCENARIOS } from "@/lib/scenarios";
 import { EVAL_HEADLINE } from "@/lib/evalHeadline";
-import { CountUp } from "./components/CountUp";
 import { OutcomeMark } from "./components/Editorial";
 import { EscalationStrip } from "./components/EscalationStrip";
 import { Reveal } from "./components/Reveal";
 
 export const metadata: Metadata = {
-  title: "Ariel Magalso — AI Engineer",
+  title: "Provenance — Verified RAG System by Ariel Magalso",
   description:
-    "A recruiter-first case study of Provenance, an accountable AI support product designed and built end to end by Ariel Magalso.",
+    "A live, inspectable RAG system with claim-level verification, human review, and 45 committed evaluation cases—designed and built end to end by AI engineer Ariel Magalso.",
 };
 
 const CAPABILITIES = [
@@ -30,9 +29,69 @@ const OWNERSHIP = [
 ] as const;
 
 const PROOF_POINTS = [
-  [45, "/45", "Development cases passing"],
-  [52, "", "Indexed policy passages"],
-  [100, "%", "Route accuracy"],
+  ["45/45", "Committed routes correct"],
+  ["0%", "Fabrication rate in evals"],
+  ["52", "Traceable policy passages"],
+] as const;
+
+const AUTOMATION_STEPS = [
+  ["01", "Intake", "Receive a normalized support question with a stable external ID."],
+  ["02", "Screen", "Stop injection attempts and off-topic requests before generation."],
+  ["03", "Retrieve", "Search only approved, traceable policy passages."],
+  ["04", "Generate", "Draft an answer constrained to the retrieved evidence."],
+  ["05", "Verify", "Check every atomic claim against its supporting passage."],
+  ["06", "Route", "Answer, request human review, or refuse safely."],
+] as const;
+
+const INTEGRATION_TARGETS = [
+  ["Ticket intake", "Zendesk · Intercom · shared email", "compatible target"],
+  ["Knowledge", "Help centers · policy libraries · internal docs", "compatible target"],
+  ["Human review", "Slack", "live integration"],
+  ["Customer records", "Salesforce Service Cloud · HubSpot", "compatible target"],
+  ["Operations", "Microsoft Teams · analytics · observability", "compatible target"],
+] as const;
+
+const INDUSTRIES = [
+  {
+    number: "01",
+    title: "B2B SaaS",
+    workflow: "Product, billing, account, and support-policy questions.",
+    risk: "A confident answer invents a feature, entitlement, or billing rule.",
+    safeguard: "Verified claims and citations before a response is approved.",
+    benefit: "More routine questions handled without hiding uncertainty.",
+  },
+  {
+    number: "02",
+    title: "Financial services operations",
+    workflow: "Policy and process questions handled by service teams.",
+    risk: "Unsupported guidance becomes a costly or regulated operational decision.",
+    safeguard: "Mandatory human review whenever evidence is incomplete or ambiguous.",
+    benefit: "Faster policy lookup while accountable decisions stay with people.",
+  },
+  {
+    number: "03",
+    title: "Healthcare administration",
+    workflow: "Operational, eligibility, and benefits-document questions.",
+    risk: "Incomplete documentation is mistaken for clinical or coverage certainty.",
+    safeguard: "Document-bounded answers and escalation; never autonomous clinical advice.",
+    benefit: "Quicker administrative support with explicit safety boundaries.",
+  },
+  {
+    number: "04",
+    title: "Property, coworking & hospitality",
+    workflow: "Pricing, access, booking, cancellation, guest, and liability policies.",
+    risk: "Guests or members act on a policy that does not exist.",
+    safeguard: "Stable source IDs, visible citations, and safe refusal for coverage gaps.",
+    benefit: "Consistent answers across repetitive, policy-heavy conversations.",
+  },
+  {
+    number: "05",
+    title: "Internal IT & HR service desks",
+    workflow: "Employee questions grounded in approved internal documentation.",
+    risk: "Outdated or invented guidance spreads across the organization.",
+    safeguard: "Controlled knowledge, auditable decisions, and operator correction loops.",
+    benefit: "Less repetitive lookup work without turning the model into the authority.",
+  },
 ] as const;
 
 const SERVICES = [
@@ -234,6 +293,27 @@ function RouteInfographic({ outcome, index }: { outcome: string; index: number }
   );
 }
 
+function AutomationStepGraphic({ variant }: { variant: "Intake" | "Screen" | "Retrieve" | "Generate" | "Verify" | "Route" }) {
+  if (variant === "Intake") return (
+    <svg viewBox="0 0 240 86" aria-hidden="true"><rect className="as-panel" x="8" y="12" width="72" height="58" rx="7" /><path className="as-line" d="M22 28h42M22 40h31M22 52h37" /><circle className="as-accent" cx="80" cy="22" r="8" /><path className="as-flow" d="M92 41h52" /><path className="as-arrow" d="m137 34 8 7-8 7" /><rect className="as-node" x="157" y="23" width="74" height="36" rx="18" /><path className="as-check" d="m179 41 6 6 12-14" /></svg>
+  );
+  if (variant === "Screen") return (
+    <svg viewBox="0 0 240 86" aria-hidden="true"><path className="as-shield" d="M52 10 84 22v22c0 19-12 29-32 37C32 73 20 63 20 44V22z" /><path className="as-check" d="m39 43 9 9 19-22" /><path className="as-flow" d="M96 43h38" /><circle className="as-risk" cx="163" cy="28" r="14" /><path className="as-risk-mark" d="m157 22 12 12m0-12-12 12" /><circle className="as-pass" cx="207" cy="58" r="14" /><path className="as-check" d="m200 58 5 5 10-12" /><path className="as-branch" d="M134 43h14c8 0 7-15 15-15M134 43h58c8 0 7 15 15 15" /></svg>
+  );
+  if (variant === "Retrieve") return (
+    <svg viewBox="0 0 240 86" aria-hidden="true"><ellipse className="as-db" cx="42" cy="20" rx="27" ry="9" /><path className="as-db" d="M15 20v38c0 5 12 9 27 9s27-4 27-9V20M15 38c0 5 12 9 27 9s27-4 27-9" /><path className="as-flow" d="M79 43h44" /><path className="as-arrow" d="m116 36 8 7-8 7" /><rect className="as-doc" x="135" y="10" width="41" height="57" rx="5" /><rect className="as-doc as-doc-active" x="187" y="17" width="41" height="57" rx="5" /><path className="as-line" d="M145 25h21m-21 10h21m-21 10h14M197 32h21m-21 10h17m-17 10h21" /></svg>
+  );
+  if (variant === "Generate") return (
+    <svg viewBox="0 0 240 86" aria-hidden="true"><path className="as-doc" d="M12 12h68v62H12z" /><path className="as-line" d="M25 28h42M25 40h35M25 52h28" /><path className="as-flow" d="M92 43h40" /><path className="as-arrow" d="m125 36 8 7-8 7" /><path className="as-bubble" d="M145 14h82v49h-48l-18 13V63h-16z" /><path className="as-line" d="M159 30h53M159 42h43M159 53h28" /><circle className="as-accent" cx="220" cy="20" r="8" /></svg>
+  );
+  if (variant === "Verify") return (
+    <svg viewBox="0 0 240 86" aria-hidden="true"><g className="as-claims"><rect x="8" y="10" width="122" height="19" rx="5" /><rect x="8" y="34" width="122" height="19" rx="5" /><rect x="8" y="58" width="122" height="19" rx="5" /></g><path className="as-line" d="M19 20h73M19 44h88M19 68h64" /><circle className="as-pass" cx="119" cy="20" r="7" /><circle className="as-pass" cx="119" cy="44" r="7" /><circle className="as-accent" cx="119" cy="68" r="7" /><path className="as-flow" d="M143 43h28" /><path className="as-arrow" d="m164 36 8 7-8 7" /><circle className="as-score" cx="207" cy="43" r="28" /><path className="as-score-track" d="M207 15a28 28 0 1 1-23 12" /><text className="as-score-text" x="207" y="47" textAnchor="middle">.96</text></svg>
+  );
+  return (
+    <svg viewBox="0 0 240 86" aria-hidden="true"><circle className="as-node-dark" cx="29" cy="43" r="18" /><path className="as-flow-light" d="M47 43h34c16 0 15-27 31-27h23M81 43h54M81 43c16 0 15 27 31 27h23" /><path className="as-arrow-light" d="m128 10 8 6-8 6m0 15 8 6-8 6m0 15 8 6-8 6" /><rect className="as-route-pass" x="147" y="5" width="81" height="22" rx="6" /><rect className="as-route-review" x="147" y="32" width="81" height="22" rx="6" /><rect className="as-route-stop" x="147" y="59" width="81" height="22" rx="6" /><path className="as-check" d="m158 16 4 4 8-9" /><path className="as-review-mark" d="M164 38v8m0 4v1" /><path className="as-risk-mark" d="m158 65 12 12m0-12-12 12" /></svg>
+  );
+}
+
 export default function Home() {
   return (
     <main className="provenance-agero-home">
@@ -241,24 +321,25 @@ export default function Home() {
         <div className="ah-shell">
           <Reveal className="ah-trust-row">
             <span className="ah-availability-dot" aria-hidden="true" />
-            <span>Ariel Magalso · Philippines · Open to new roles</span>
+            <span>Ariel Magalso · AI Engineer · Open to remote roles</span>
           </Reveal>
 
           <Reveal delay={0.05} className="ah-hero-lockup">
             <h1>
-              <span>AI Engineer <span className="ah-inline-visual ah-inline-evidence"><InlineInfographic variant="verify" /></span></span>
-              <span className="ah-muted">building proof, <span className="ah-inline-visual ah-inline-route"><InlineInfographic variant="route" /></span></span>
-              <span>not promises. <span className="ah-inline-visual ah-inline-score"><InlineInfographic variant="evidence" /></span></span>
+              <span>AI systems <span className="ah-inline-visual ah-inline-evidence"><InlineInfographic variant="verify" /></span></span>
+              <span className="ah-muted">that know when <span className="ah-inline-visual ah-inline-route"><InlineInfographic variant="route" /></span></span>
+              <span>not to answer. <span className="ah-inline-visual ah-inline-score"><InlineInfographic variant="evidence" /></span></span>
             </h1>
           </Reveal>
 
           <Reveal delay={0.1} className="ah-hero-copy">
-            <p>I design and build accountable AI products from product framing to production workflow. Provenance is the working proof.</p>
+            <p>I built Provenance end to end: a production-minded RAG workflow that retrieves approved evidence, verifies every generated claim, and routes uncertain answers to a human.</p>
             <div className="ah-hero-actions">
-              <a className="ah-pill ah-pill-dark" href="mailto:hello@arielmagalso.com">Contact Ariel <ArrowIcon /></a>
-              <Link className="ah-pill ah-pill-light" href="#work">View the case study <ArrowIcon /></Link>
+              <Link className="ah-pill ah-pill-dark" href="/demo">Run the 90-second demo <ArrowIcon /></Link>
+              <Link className="ah-pill ah-pill-light" href="/architecture">Inspect the architecture <ArrowIcon /></Link>
             </div>
-            <div className="ah-hero-meta"><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio</a><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
+            <div className="ah-hero-stack" aria-label="Core technology"><span>Next.js</span><span>TypeScript</span><span>Postgres + pgvector</span><span>Claude API</span><span>Supabase</span></div>
+            <div className="ah-hero-meta"><a href="mailto:hello@arielmagalso.com">Email</a><a href="https://arielmagalso.com" target="_blank" rel="noopener noreferrer">Portfolio</a><a href="https://github.com/ArielMagalsoDev/provenance" target="_blank" rel="noopener noreferrer">Source</a><a href="https://www.linkedin.com/in/magalsoariel" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
           </Reveal>
         </div>
       </section>
@@ -266,6 +347,70 @@ export default function Home() {
       <section className="ah-marquee" aria-label="Capabilities">
         <div className="ah-marquee-track">
           {[...CAPABILITIES, ...CAPABILITIES].map((item, index) => <span key={`${item}-${index}`}>{item}<i /></span>)}
+        </div>
+      </section>
+
+      <section id="problem" className="ah-story-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( The product argument )</p><h2>AI support fails quietly.</h2></div>
+            <p>Retrieving a relevant document is not the same as proving an answer. One unsupported sentence can look identical to five sourced facts.</p>
+          </div>
+          <div className="ah-story-grid">
+            <Reveal className="ah-story-card ah-story-card-problem">
+              <div className="ah-story-card-head"><span className="ah-story-index">01 / The problem</span><small>Looks plausible</small></div>
+              <div className="ah-story-art ah-story-art-failure" aria-label="A response containing an unsupported claim">
+                <div className="ah-story-art-top"><span>Generated response</span><i>unverified</i></div>
+                <p>Your plan includes after-hours access, meeting-room credits, and <mark>equipment insurance.</mark></p>
+                <div className="ah-story-art-source"><span>Retrieved sources</span><b>2 relevant passages</b><em>Insurance claim unsupported</em></div>
+              </div>
+              <div className="ah-story-copy"><h3>Confidence hides the failure.</h3><p>Generic RAG can retrieve useful context and still invent a policy, price, entitlement, or exception.</p></div>
+              <ul><li>No visible boundary between sourced and invented claims.</li><li>No dependable path for ambiguous requests.</li><li>Incorrect guidance becomes operational risk.</li></ul>
+            </Reveal>
+            <Reveal delay={0.08} className="ah-story-card ah-story-card-solution">
+              <div className="ah-story-card-head"><span className="ah-story-index">02 / The solution</span><small>Proof attached</small></div>
+              <div className="ah-story-art ah-story-art-verified" aria-label="Claims verified against approved policy passages">
+                <div className="ah-story-art-top"><span>Claim verification</span><i>passed</i></div>
+                <div className="ah-claim-row"><b>Dedicated Desk includes after-hours access.</b><span>0.96</span><em>HOURS-02</em></div>
+                <div className="ah-claim-row"><b>Meeting-room credits are plan-specific.</b><span>0.93</span><em>PRICING-03</em></div>
+                <div className="ah-claim-route"><span>Final route</span><strong>Answer with citations</strong></div>
+              </div>
+              <div className="ah-story-copy"><h3>Evidence before answers.</h3><p>Generation is only a proposal until a separate verification pass checks every claim.</p></div>
+              <ul><li>Approved knowledge only.</li><li>Claim-level evidence checks.</li><li>Answer, review, or refuse with the reason preserved.</li></ul>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section id="automation" className="ah-automation-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading ah-section-heading-light">
+            <div><p className="ah-parenthetical">( The AI automation )</p><h2>From incoming question to accountable action.</h2></div>
+            <p>Six inspectable stages turn an untrusted request into one of three responsible outcomes.</p>
+          </div>
+          <div className="ah-automation-intro" aria-label="Automation input and possible decisions">
+            <div className="ah-automation-request"><span>Incoming request</span><strong>“Does my membership include after-hours access?”</strong><small>channel / support inbox</small></div>
+            <div className="ah-automation-pulse" aria-hidden="true"><i /><i /><i /></div>
+            <div className="ah-automation-decision"><span>Accountable decision</span><div><b>Answer</b><b>Review</b><b>Refuse</b></div><small>one route · evidence preserved</small></div>
+          </div>
+          <div className="ah-automation-flow" aria-label="Automation flow from intake to route">
+            {AUTOMATION_STEPS.map(([number, title, copy], index) => (
+              <div className="ah-automation-step" key={title}>
+                <div className="ah-automation-step-head"><span>{number}</span><em>{["request", "risk", "evidence", "draft", "claims", "decision"][index]}</em>{index < AUTOMATION_STEPS.length - 1 ? <i aria-hidden="true">→</i> : null}</div>
+                <div className={`ah-step-graphic ah-step-graphic-${title.toLowerCase()}`}><AutomationStepGraphic variant={title} /></div>
+                <strong>{title}</strong><p>{copy}</p>
+              </div>
+            ))}
+          </div>
+          <div className="ah-automation-outcomes">
+            <div><span>✓ Approved</span><p>Supported response with citations.</p></div>
+            <div><span>! Human review</span><p>Uncertainty and evidence sent to an operator.</p></div>
+            <div><span>× Blocked or refused</span><p>Unsafe intent or unsupported answer stopped.</p></div>
+          </div>
+          <div className="ah-automation-foot">
+            <p>Retrieval, verification, routing, inbox, audit trail, and configured Slack handoff are operational. Final customer sending is simulated.</p>
+            <div><Link className="ah-pill ah-pill-light" href="/demo">Run the live workflow <ArrowIcon /></Link><Link className="ah-contact-text-link" href="/architecture">Inspect the architecture <ArrowIcon /></Link></div>
+          </div>
         </div>
       </section>
 
@@ -296,9 +441,9 @@ export default function Home() {
 
           <div className="ah-proof-grid">
             <div className="ah-stat-stack">
-              {PROOF_POINTS.map(([value, suffix, label]) => (
+              {PROOF_POINTS.map(([value, label]) => (
                 <Reveal className="ah-stat" key={label}>
-                  <strong><CountUp value={value} suffix={suffix} /></strong>
+                  <strong><span>{value}</span></strong>
                   <span>{label}</span>
                 </Reveal>
               ))}
@@ -383,6 +528,52 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="integrations" className="ah-integrations-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( Third-party systems )</p><h2>Designed to fit the support stack.</h2></div>
+            <p>Provenance sits between incoming support channels, controlled knowledge, human reviewers, and downstream systems of record.</p>
+          </div>
+          <div className="ah-integration-layout">
+            <div className="ah-integration-flow" aria-label="Third-party integration data flow">
+              <div className="ah-integration-stage ah-integration-connect">
+                <div className="ah-integration-stage-head"><span>01</span><em>Connect</em></div>
+                <h3>Bring in the question and approved context.</h3>
+                <div className="ah-integration-chip-group" aria-label="Compatible intake and knowledge targets">
+                  <span>Zendesk</span><span>Intercom</span><span>Shared email</span>
+                  <span>Help centers</span><span>Policy libraries</span><span>Internal docs</span>
+                </div>
+                <small>Compatible targets</small>
+              </div>
+              <div className="ah-integration-stage-arrow" aria-hidden="true"><span>→</span></div>
+              <div className="ah-integration-stage ah-integration-verify">
+                <div className="ah-integration-stage-head"><span>02</span><em>Verify</em></div>
+                <h3>Provenance</h3>
+                <p>Screen intent, retrieve approved evidence, verify each claim, then choose one accountable route.</p>
+                <div className="ah-integration-route-list"><b>Answer</b><b>Review</b><b>Refuse</b></div>
+              </div>
+              <div className="ah-integration-stage-arrow" aria-hidden="true"><span>→</span></div>
+              <div className="ah-integration-stage ah-integration-act">
+                <div className="ah-integration-stage-head"><span>03</span><em>Act</em></div>
+                <h3>Send the decision where work happens.</h3>
+                <div className="ah-integration-live-row"><i aria-hidden="true" /><strong>Slack</strong><small>Live integration</small></div>
+                <div className="ah-integration-chip-group" aria-label="Compatible downstream targets">
+                  <span>Salesforce</span><span>HubSpot</span><span>Microsoft Teams</span><span>Analytics</span>
+                </div>
+              </div>
+            </div>
+            <Reveal className="ah-integration-contract">
+              <div className="ah-integration-contract-head"><span className="ah-story-index">Integration contract</span><small>6 requirements</small></div>
+              <h3>Portable by design.<br />Auditable by default.</h3>
+              <ol><li><span>01</span>Authenticated webhook intake</li><li><span>02</span>Stable external ticket IDs</li><li><span>03</span>Idempotent delivery handling</li><li><span>04</span>Normalized ticket payloads</li><li><span>05</span>Structured decision responses</li><li><span>06</span>Auditable downstream actions</li></ol>
+              <div className="ah-live-proof"><i aria-hidden="true" /><div><strong>Slack is live</strong><span>Operator notifications and approval workflow</span></div></div>
+              <p className="ah-integration-disclosure">All other named vendors are compatible integration targets, not connected systems in this demo.</p>
+              <div className="ah-integration-links"><Link href="/inbox">Open the review inbox <ArrowIcon /></Link><Link href="/architecture">Read the architecture <ArrowIcon /></Link></div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       <section id="about-ariel" className="ah-builder-section">
         <div className="ah-shell">
           <div className="ah-section-heading">
@@ -399,7 +590,7 @@ export default function Home() {
               <div className="ah-builder-metrics" aria-label="Project proof points">
                 <div><strong>01</strong><span>End-to-end<br />product</span></div>
                 <div><strong>45</strong><span>Committed<br />eval cases</span></div>
-                <div><strong>08</strong><span>Inspectible<br />stages</span></div>
+                <div><strong>08</strong><span>Inspectable<br />stages</span></div>
               </div>
               <div className="ah-builder-disciplines"><span>Product design</span><span>Full-stack AI</span><span>Responsible systems</span></div>
               <div className="ah-builder-signal" aria-hidden="true"><i /><i /><i /><i /><i /></div>
@@ -480,6 +671,24 @@ export default function Home() {
         current="provenance"
         currentMetric={{ value: `${EVAL_HEADLINE.casesPassing}/${EVAL_HEADLINE.casesTotal}`, label: "cases passing" }}
       />
+
+      <section id="industries" className="ah-industries-section">
+        <div className="ah-shell">
+          <div className="ah-section-heading">
+            <div><p className="ah-parenthetical">( Best-fit industries )</p><h2>Where accountable automation matters most.</h2></div>
+            <p>The strongest fit is a support-heavy team answering repeated questions from controlled documents—where an unsupported answer has a real consequence.</p>
+          </div>
+          <div className="ah-industry-grid">
+            {INDUSTRIES.map((industry) => (
+              <article className="ah-industry-card" key={industry.title}>
+                <div className="ah-industry-card-head"><span>{industry.number}</span><strong>{industry.title}</strong></div>
+                <dl><div><dt>Workflow</dt><dd>{industry.workflow}</dd></div><div><dt>Risk</dt><dd>{industry.risk}</dd></div><div><dt>Safeguard</dt><dd>{industry.safeguard}</dd></div><div><dt>Benefit</dt><dd>{industry.benefit}</dd></div></dl>
+              </article>
+            ))}
+          </div>
+          <div className="ah-industry-fit"><span>Best-fit signal</span><p>Repeated questions · controlled documents · meaningful cost of being wrong · a human who remains accountable</p></div>
+        </div>
+      </section>
 
       <section className="ah-contact-section">
         <div className="ah-shell">

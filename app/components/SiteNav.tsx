@@ -16,12 +16,12 @@ const EXTERNAL_LINKS = [
 ] as const;
 
 const RECRUITER_LINKS = [
-  { href: "/#case-study", label: "Case study" },
+  { href: "/#problem", label: "Problem" },
+  { href: "/#automation", label: "Automation" },
+  { href: "/#integrations", label: "Integrations" },
+  { href: "/#industries", label: "Industries" },
   { href: "/demo", label: "Demo" },
-  { href: "/architecture", label: "Architecture" },
   { href: "/evals", label: "Evidence" },
-  { href: "/corpus", label: "Corpus" },
-  { href: "/inbox", label: "Inbox" },
 ] as const;
 
 export function SiteNav() {
