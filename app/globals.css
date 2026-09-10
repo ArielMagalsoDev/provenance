@@ -2064,6 +2064,34 @@ body:has(.agero-inner-page) .nav-cta { min-height: 44px; padding-inline: 28px; b
 .demo-proof dl div { padding: 20px; border: 1px solid #333; border-radius: 16px; }
 .demo-proof dt { color: var(--inner-accent); font-family: var(--font-display); font-size: clamp(34px,4vw,52px); font-weight: 600; letter-spacing: -.05em; }
 .demo-proof dd { margin: 8px 0 0; color: #aaa; font-size: 10px; line-height: 1.3; text-transform: uppercase; }
+
+/* Demo readability: client-facing copy should remain legible during screen sharing. */
+.agero-inner-page .demo-hero-kicker { font-size: 14px; }
+.agero-inner-page .demo-outcomes span { font-size: 14px; }
+.agero-inner-page .notice-rail-heading > span { font-size: 12px; }
+.agero-inner-page .notice-rail-heading strong { font-size: clamp(21px,2vw,28px); }
+.agero-inner-page .notice-rail-list b { font-size: 15px; line-height: 1.25; }
+.agero-inner-page .notice-rail-list small { font-size: 13px; line-height: 1.5; }
+.agero-inner-page .notice-rail-list > span { min-height: 112px; padding: 18px; }
+.workspace-demo-heading > span,.demo-section-heading > span,.demo-proof-grid > div > span { font-size: 12px; }
+.workspace-demo-heading p,.demo-section-heading p,.demo-proof p { font-size: 17px; }
+.workspace-demo-steps span { font-size: 14px; }
+.workspace-demo-steps i { width: 26px; height: 26px; font-size: 11px; }
+.workspace-scenario-button { min-height: 250px; padding: 22px; }
+.workspace-scenario-button > strong { font-size: 21px; line-height: 1.2; }
+.workspace-scenario-button > p { font-size: 15px; line-height: 1.55; }
+.workspace-scenario-button > em { font-size: 12px; line-height: 1.4; }
+.workspace-scenario-button > small { font-size: 14px; }
+.workspace-advanced-tools summary { font-size: 16px; }
+.workspace-advanced-tools > p { font-size: 14px; }
+.workspace-reset-row strong { font-size: 16px; }
+.workspace-reset-row span { font-size: 14px; line-height: 1.45; }
+.demo-value-grid h3 { font-size: 24px; }
+.demo-value-grid p { font-size: 15px; line-height: 1.6; }
+.demo-proof dd { font-size: 13px; line-height: 1.45; }
+.demo-architecture-copy p { font-size: 18px; }
+.demo-architecture-flow strong { font-size: 16px; }
+.demo-architecture-flow small,.demo-architecture-legend { font-size: 12px; }
 .workspace-custom-ticket { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; padding: 10px; border-radius: 16px; background: rgba(255,255,255,.62); }
 .workspace-empty-state { display: grid; justify-items: center; margin-top: 20px; padding: 54px 30px; border: 1px dashed #c9c9c9; border-radius: 18px; background: rgba(255,255,255,.55); color: var(--inner-muted); text-align: center; }
 .workspace-empty-state > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #171717; color: #fff; }
