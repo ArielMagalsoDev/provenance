@@ -29,7 +29,7 @@ export default function DemoPage() {
             </div>
             <div className="demo-hero-actions">
               <Link className="demo-primary-link" href="#live-workflow">Run the guided demo <span aria-hidden="true">↘</span></Link>
-              <Link className="demo-secondary-link" href="#client-value">See what it solves <span aria-hidden="true">→</span></Link>
+              <a className="demo-secondary-link" href="#client-value">See what it solves <span aria-hidden="true">→</span></a>
             </div>
           </div>
 
@@ -62,21 +62,21 @@ export default function DemoPage() {
           </div>
         </div>
       </header>
-      <aside className="notice-rail shell" aria-label="What Provenance solves">
+      <aside id="client-value" className="notice-rail shell" aria-label="What Provenance solves">
         <div className="notice-rail-heading">
           <span>Business problem</span>
           <strong>Automate support without automating risk</strong>
         </div>
         <div className="notice-rail-list">
-          <span><i>01</i><b>Reduce repetitive work</b><small>Routine questions can be answered automatically.</small></span>
-          <span><i>02</i><b>Prevent invented policies</b><small>Every claim must be supported before it reaches a customer.</small></span>
-          <span><i>03</i><b>Keep human judgment</b><small>Uncertain or sensitive questions go to an operator.</small></span>
-          <span><i>04</i><b>Explain every decision</b><small>Sources, checks, and routing stay visible for review.</small></span>
+          <span><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13 3-8 11h6l-1 7 9-12h-6z" /></svg></i><b>Reduce repetitive work</b><small>Routine questions can be answered automatically.</small><em className="benefit-flow"><strong>Question</strong><svg aria-hidden="true" viewBox="0 0 32 16"><path d="M1 8h28m-6-6 6 6-6 6"/></svg><strong>Auto reply</strong></em></span>
+          <span><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4 4 7 8 9 4-2 8-5 8-9V6z"/><path d="m8 12 3 3 5-6"/></svg></i><b>Prevent invented policies</b><small>Every claim must be supported before it reaches a customer.</small><em className="benefit-flow"><strong>Claim</strong><svg aria-hidden="true" viewBox="0 0 32 16"><path d="M1 8h28m-6-6 6 6-6 6"/></svg><strong>Policy check</strong></em></span>
+          <span><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3.5"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-11 2 2 4-4"/></svg></i><b>Keep human judgment</b><small>Uncertain or sensitive questions go to an operator.</small><em className="benefit-flow"><strong>Uncertain</strong><svg aria-hidden="true" viewBox="0 0 32 16"><path d="M1 8h28m-6-6 6 6-6 6"/></svg><strong>Human review</strong></em></span>
+          <span><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM10 8h4M10 12h4M10 16h4"/><path d="M3 7h3M3 12h3M3 17h3"/></svg></i><b>Explain every decision</b><small>Sources, checks, and routing stay visible for review.</small><em className="benefit-flow"><strong>Sources</strong><svg aria-hidden="true" viewBox="0 0 32 16"><path d="M1 8h28m-6-6 6 6-6 6"/></svg><strong>Audit trail</strong></em></span>
         </div>
       </aside>
       <div id="live-workflow"><TicketWorkflow showHeader={false} /></div>
 
-      <section id="client-value" className="demo-client-value">
+      <section className="demo-client-value">
         <div className="shell">
           <div className="demo-section-heading">
             <span>What the client gets</span>
