@@ -2031,8 +2031,39 @@ body:has(.agero-inner-page) .nav-cta { min-height: 44px; padding-inline: 28px; b
 .workspace-scenario-button:focus-visible .workspace-scenario-arrow path { transform: translateX(2px); }
 .workspace-scenario-button > strong { max-width: 90%; margin-top: 24px; color: var(--inner-ink); font-size: 17px; line-height: 1.15; }
 .workspace-scenario-button > p { margin-top: 9px; color: var(--inner-muted); font-size: 12px; line-height: 1.45; }
+.workspace-scenario-button > em { display: block; margin-top: 12px; color: var(--inner-accent); font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .workspace-scenario-button > small { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 18px; color: var(--inner-ink); font-size: 11px; font-weight: 600; }
 .workspace-scenario-button > small span { color: var(--inner-accent); }
+
+.workspace-demo-heading { max-width: 780px; margin-bottom: 28px; }
+.workspace-demo-heading > span,.demo-section-heading > span,.demo-proof-grid > div > span { color: var(--inner-accent); font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.workspace-demo-heading h2,.demo-section-heading h2,.demo-proof h2 { margin-top: 14px; color: var(--inner-ink); font-family: var(--font-display); font-size: clamp(34px,4.4vw,58px); font-weight: 600; line-height: 1; letter-spacing: -.05em; }
+.workspace-demo-heading p,.demo-section-heading p,.demo-proof p { max-width: 690px; margin-top: 16px; color: var(--inner-muted); font-size: 15px; line-height: 1.6; }
+.workspace-demo-steps { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.workspace-demo-steps span { display: flex; align-items: center; gap: 8px; color: var(--inner-muted); font-size: 11px; font-weight: 600; }
+.workspace-demo-steps i { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: var(--inner-ink); color: #fff; font-size: 9px; font-style: normal; }
+.workspace-advanced-tools { margin-top: 20px; padding: 18px; border: 1px solid rgba(23,23,23,.09); border-radius: 18px; background: rgba(255,255,255,.58); }
+.workspace-advanced-tools summary { color: var(--inner-ink); font-size: 13px; font-weight: 700; cursor: pointer; }
+.workspace-advanced-tools > p { max-width: 760px; margin: 9px 0 16px; color: var(--inner-muted); font-size: 12px; line-height: 1.5; }
+.workspace-reset-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; border-top: 1px solid var(--hairline-soft); background: var(--surface-soft); }
+.workspace-reset-row > div { display: grid; gap: 3px; }
+.workspace-reset-row strong { color: var(--inner-ink); font-size: 13px; }
+.workspace-reset-row span { color: var(--inner-muted); font-size: 11px; }
+.demo-client-value { padding: clamp(58px,8vw,110px) 0; background: var(--inner-surface); }
+.demo-section-heading { max-width: 780px; }
+.demo-value-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin-top: 42px; }
+.demo-value-grid article { min-height: 250px; padding: 24px; border-radius: 20px; background: #fff; box-shadow: 0 18px 44px -38px rgba(0,0,0,.55); }
+.demo-value-grid article > span { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: var(--inner-ink); color: #fff; font-size: 10px; font-weight: 700; }
+.demo-value-grid h3 { margin-top: 54px; color: var(--inner-ink); font-family: var(--font-display); font-size: 21px; line-height: 1.05; letter-spacing: -.03em; }
+.demo-value-grid p { margin-top: 12px; color: var(--inner-muted); font-size: 12px; line-height: 1.55; }
+.demo-proof { padding: clamp(58px,8vw,100px) 0; background: #171717; color: #fff; }
+.demo-proof-grid { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(420px,.9fr); gap: 70px; align-items: end; }
+.demo-proof h2 { color: #fff; }
+.demo-proof p { color: #aaa; }
+.demo-proof dl { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 0; }
+.demo-proof dl div { padding: 20px; border: 1px solid #333; border-radius: 16px; }
+.demo-proof dt { color: var(--inner-accent); font-family: var(--font-display); font-size: clamp(34px,4vw,52px); font-weight: 600; letter-spacing: -.05em; }
+.demo-proof dd { margin: 8px 0 0; color: #aaa; font-size: 10px; line-height: 1.3; text-transform: uppercase; }
 .workspace-custom-ticket { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; padding: 10px; border-radius: 16px; background: rgba(255,255,255,.62); }
 .workspace-empty-state { display: grid; justify-items: center; margin-top: 20px; padding: 54px 30px; border: 1px dashed #c9c9c9; border-radius: 18px; background: rgba(255,255,255,.55); color: var(--inner-muted); text-align: center; }
 .workspace-empty-state > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #171717; color: #fff; }
@@ -2268,6 +2299,9 @@ body:has(.agero-inner-page) .nav-cta { min-height: 44px; padding-inline: 28px; b
     min-height: 0;
   }
 
+  .demo-value-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .demo-proof-grid { grid-template-columns: 1fr; gap: 38px; }
+
   .agero-inner-page .notice-rail { grid-template-columns: 1fr; gap: 16px; }
   .notice-rail-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .decision-gates-section .shell { grid-template-columns: 1fr; }
@@ -2296,6 +2330,10 @@ body:has(.agero-inner-page) .nav-cta { min-height: 44px; padding-inline: 28px; b
   .agero-inner-page .page-cta { align-items: flex-start; flex-direction: column; }
   .agero-inner-page .page-cta [data-slot="button"] { width: 100%; }
   .notice-rail-list { grid-template-columns: 1fr; }
+  .demo-value-grid,.demo-proof dl { grid-template-columns: 1fr; }
+  .demo-value-grid article { min-height: 210px; }
+  .workspace-reset-row { align-items: stretch; flex-direction: column; }
+  .workspace-reset-row [data-slot="button"] { width: 100%; }
   .agero-inner-page .notice-rail-list > span { min-height: 82px; }
   .decision-gates-section .archive-head { display: none; }
   .decision-gates-section .archive-row { grid-template-columns: 1fr; gap: 10px; padding: 20px; }

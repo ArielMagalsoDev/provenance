@@ -39,6 +39,12 @@ const STATUS_LABEL: Record<AutomationDecision["outcome"], string> = {
   blocked: "Unsafe instruction blocked",
 };
 
+const SCENARIO_RESULT: Record<GuidedScenario["expectedOutcome"], string> = {
+  approved: "Routine · approve automatically",
+  human_review: "Uncertain · send to a person",
+  blocked: "Unsafe · block before generation",
+};
+
 const EMPTY_DRAFT: Draft = { channel: "chat", customerName: "", customerContext: "", category: "General inquiry", message: "" };
 
 function initials(name: string): string {
@@ -136,8 +142,18 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
           </div>
         )}
 
-        <div className="workspace-upload-wrap">
-          <WorkspaceUpload onStatusChange={setWorkspaceScope} />
+        {!showHeader && (
+          <div className="workspace-demo-heading">
+            <span>Live client workflow</span>
+            <h2>Choose a support ticket to see the decision.</h2>
+            <p>Each scenario runs through the same production-minded pipeline. Watch what gets automated, what needs a person, and what is stopped.</p>
+          </div>
+        )}
+
+        <div className="workspace-demo-steps" aria-label="Demo instructions">
+          <span><i>1</i>Choose a ticket</span>
+          <span><i>2</i>Watch the checks</span>
+          <span><i>3</i>Inspect the outcome</span>
         </div>
 
         <div className="grid-3 workspace-scenario-grid" aria-label="Guided scenarios">
@@ -159,10 +175,18 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
               </div>
               <strong>{s.label}</strong>
               <p>{s.question}</p>
+              <em>{SCENARIO_RESULT[s.expectedOutcome]}</em>
               <small>Run this scenario <span aria-hidden="true">→</span></small>
             </button>
           ))}
         </div>
+
+        <details className="workspace-advanced-tools">
+          <summary>Try your own knowledge and ticket</summary>
+          <p>Upload a policy document or enter a custom customer question. This advanced path runs live and may use the daily demo budget.</p>
+          <div className="workspace-upload-wrap">
+            <WorkspaceUpload onStatusChange={setWorkspaceScope} />
+          </div>
 
         <form onSubmit={runCustom} className="workspace-custom-ticket">
           <Select value={draft.channel} onValueChange={(v) => setDraft((d) => ({ ...d, channel: v as SupportTicket["channel"] }))}>
@@ -198,6 +222,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
             {loading ? "Processing…" : "Submit ticket"}
           </Button>
         </form>
+        </details>
 
         {error && (
           <div style={{ marginTop: "16px" }}>
@@ -211,7 +236,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
         )}
 
         {decision && ticket ? (
-          <div className="card-feature" style={{ padding: 0, overflow: "hidden", marginTop: "24px" }}>
+          <div id="demo-result" className="card-feature" style={{ padding: 0, overflow: "hidden", marginTop: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 24px", borderBottom: "1px solid var(--hairline-soft)" }}>
               <span className="text-caption" style={{ color: "var(--steel)", letterSpacing: "0.04em" }}>
                 PROVENANCE / SUPPORT OPERATIONS
@@ -292,6 +317,12 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="workspace-reset-row">
+              <div><strong>Ready for the next outcome?</strong><span>Run another scenario to compare how the same system makes a different decision.</span></div>
+              <Button type="button" variant="ink-outline" onClick={() => { setDecision(null); setAuditEvents([]); setActiveScenario(null); setDraft(EMPTY_DRAFT); setError(null); }}>
+                Reset demo
+              </Button>
             </div>
           </div>
         ) : (
