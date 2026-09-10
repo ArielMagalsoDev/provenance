@@ -6,10 +6,8 @@ import type { AutomationDecision, AuditEvent, SupportTicket } from "@/lib/types"
 import { EvidenceSteps } from "./EvidenceSteps";
 import { DecisionPanel } from "./DecisionPanel";
 import { SlackNotificationCard } from "./SlackNotificationCard";
-import { WorkspaceUpload } from "./WorkspaceUpload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Draft = {
   channel: SupportTicket["channel"];
@@ -45,7 +43,6 @@ const SCENARIO_RESULT: Record<GuidedScenario["expectedOutcome"], string> = {
   blocked: "Unsafe · block before generation",
 };
 
-const EMPTY_DRAFT: Draft = { channel: "chat", customerName: "", customerContext: "", category: "General inquiry", message: "" };
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -75,13 +72,11 @@ const AUDIT_LABEL: Record<AuditEvent["stage"], string> = {
 const metaRow: React.CSSProperties = { display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--hairline-soft)" };
 
 export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) {
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [activeScenario, setActiveScenario] = useState<GuidedScenario | null>(null);
   const [loading, setLoading] = useState(false);
   const [decision, setDecision] = useState<AutomationDecision | null>(null);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [workspaceScope, setWorkspaceScope] = useState<{ active: boolean; includeShared: boolean } | null>(null);
 
   async function submit(payload: Draft) {
     if (!payload.message.trim() || loading) return;
@@ -92,7 +87,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, includeShared: workspaceScope?.includeShared ?? true }),
+        body: JSON.stringify({ ...payload, includeShared: true }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -118,15 +113,9 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
       category: scenario.category,
       message: scenario.question,
     };
-    setDraft(payload);
     void submit(payload);
   }
 
-  function runCustom(e: React.FormEvent) {
-    e.preventDefault();
-    setActiveScenario(null);
-    void submit(draft);
-  }
 
   const badge = decision ? BADGE_FROM_OUTCOME[decision.outcome] : "success";
   const ticket = decision?.ticket;
@@ -138,7 +127,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
           <div className="legacy-route-heading">
             <span className="section-label"><i className="dot" aria-hidden="true" />Guided demo</span>
             <h1 className="text-display-lg">Support inbox</h1>
-            <p className="text-body-md">Choose a fictional ticket, or write your own. The full pipeline runs live; only the customer send action is simulated.</p>
+            <p className="text-body-md">Choose a guided fictional ticket. The full pipeline runs live; only the customer send action is simulated.</p>
           </div>
         )}
 
@@ -181,48 +170,6 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
           ))}
         </div>
 
-        <details className="workspace-advanced-tools">
-          <summary>Try your own knowledge and ticket</summary>
-          <p>Upload a policy document or enter a custom customer question. This advanced path runs live and may use the daily demo budget.</p>
-          <div className="workspace-upload-wrap">
-            <WorkspaceUpload onStatusChange={setWorkspaceScope} />
-          </div>
-
-        <form onSubmit={runCustom} className="workspace-custom-ticket">
-          <Select value={draft.channel} onValueChange={(v) => setDraft((d) => ({ ...d, channel: v as SupportTicket["channel"] }))}>
-            <SelectTrigger className="px-3 rounded-[var(--r-md)] text-[15px]" style={{ width: "110px", height: "44px" }}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="chat">Chat</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="helpdesk">Helpdesk</SelectItem>
-            </SelectContent>
-          </Select>
-          <input
-            type="text"
-            value={draft.customerName}
-            onChange={(e) => setDraft((d) => ({ ...d, customerName: e.target.value }))}
-            placeholder="Customer name (optional)"
-            aria-label="Customer name"
-            className="input"
-            style={{ width: "200px" }}
-          />
-          <input
-            type="text"
-            value={draft.message}
-            onChange={(e) => setDraft((d) => ({ ...d, message: e.target.value }))}
-            placeholder="Or write your own ticket…"
-            aria-label="Ticket message"
-            maxLength={1000}
-            className="input"
-            style={{ flex: 1, minWidth: "220px" }}
-          />
-          <Button type="submit" variant="ink" disabled={loading || !draft.message.trim()}>
-            {loading ? "Processing…" : "Submit ticket"}
-          </Button>
-        </form>
-        </details>
 
         {error && (
           <div style={{ marginTop: "16px" }}>
@@ -320,7 +267,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
             </div>
             <div className="workspace-reset-row">
               <div><strong>Ready for the next outcome?</strong><span>Run another scenario to compare how the same system makes a different decision.</span></div>
-              <Button type="button" variant="ink-outline" onClick={() => { setDecision(null); setAuditEvents([]); setActiveScenario(null); setDraft(EMPTY_DRAFT); setError(null); }}>
+              <Button type="button" variant="ink-outline" onClick={() => { setDecision(null); setAuditEvents([]); setActiveScenario(null); setError(null); }}>
                 Reset demo
               </Button>
             </div>
@@ -329,7 +276,7 @@ export function TicketWorkflow({ showHeader = true }: { showHeader?: boolean }) 
           <div className="card-feature workspace-empty-state">
             <span aria-hidden="true">↳</span>
             <strong>{loading ? "Running the live pipeline…" : "Ready for a decision"}</strong>
-            <p>{loading ? "Screening, retrieval, and verification are in progress." : "Choose a guided scenario above, upload a policy file, or write your own ticket."}</p>
+            <p>{loading ? "Screening, retrieval, and verification are in progress." : "Choose a guided scenario above to see the decision."}</p>
           </div>
         )}
 

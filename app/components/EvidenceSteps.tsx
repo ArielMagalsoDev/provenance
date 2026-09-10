@@ -84,7 +84,14 @@ export function EvidenceSteps({ askResponse, badge }: { askResponse: AskResponse
     steps.push({
       title: askResponse.grounding.passed
         ? `Groundedness ${askResponse.grounding.score.toFixed(2)}`
-        : `Groundedness ${askResponse.grounding.score.toFixed(2)} — below threshold`,
+        : `Groundedness ${askResponse.grounding.score.toFixed(2)} — verification failed`,
+      evidence: (
+        <p className="text-caption" style={{ color: "var(--steel)", marginTop: "6px" }}>
+          Overall score {askResponse.grounding.score.toFixed(2)} / required {askResponse.grounding.threshold.toFixed(2)}.
+          {" "}Lowest claim score {askResponse.grounding.minClaimScore.toFixed(2)} / required {askResponse.grounding.minClaimFloor.toFixed(2)}.
+          {" "}Both checks must pass for automatic approval.
+        </p>
+      ),
     });
   } else if (askResponse.outcome === "blocked") {
     steps.push({ title: "Event logged" });
